@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hive for XDPoS — Visual Explainer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0A0E1A;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1f2f4a;
+    --accent: #00C2FF;
+    --accent2: #7C3AED;
+    --accent3: #10B981;
+    --accent4: #F59E0B;
+    --accent5: #EF4444;
+    --text: #E2E8F0;
+    --muted: #64748B;
+    --white: #ffffff;
+    --font-display: 'Syne', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ── LAYOUT ── */
+  .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── HERO ── */
+  .hero {
+    padding: 80px 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 400px;
+    background: radial-gradient(ellipse, rgba(0,194,255,0.12) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-code);
+    font-size: 12px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--white);
+    margin-bottom: 20px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 560px;
+    margin: 0 auto 40px;
+  }
+
+  /* ── ANALOGY STRIP ── */
+  .analogy-strip {
+    display: flex;
+    gap: 2px;
+    background: var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 0 auto 80px;
+    max-width: 700px;
+  }
+  .analogy-item {
+    flex: 1;
+    background: var(--surface);
+    padding: 20px 16px;
+    text-align: center;
+  }
+  .analogy-item .emoji { font-size: 2rem; margin-bottom: 8px; }
+  .analogy-item .tool {
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .analogy-item .desc { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .analogy-arrow {
+    display: flex;
+    align-items: center;
+    padding: 0 4px;
+    background: var(--surface2);
+    color: var(--muted);
+    font-size: 18px;
+  }
+
+  /* ── SECTION ── */
+  section { padding: 64px 0; }
+  .section-label {
+    font-family: var(--font-code);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 20px;
+    line-height: 1.2;
+  }
+  .section-body { color: var(--muted); font-size: 1rem; max-width: 640px; }
+
+  /* ── DIVIDER ── */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  /* ── CLIENTS TABLE ── */
+  .clients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 32px;
+  }
+  .client-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 16px;
+    text-align: center;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .client-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .client-card .lang {
+    font-family: var(--font-code);
+    font-size: 11px;
+    color: var(--accent3);
+    background: rgba(16,185,129,0.1);
+    padding: 2px 8px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  .client-card .name { font-weight: 600; color: var(--white); font-size: 1rem; }
+
+  /* ── COMPARISON TABLE ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 32px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .compare-table th {
+    background: var(--surface2);
+    padding: 14px 20px;
+    text-align: left;
+    font-family: var(--font-code);
+    font-size: 12px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .compare-table th:nth-child(2) { color: var(--accent); }
+  .compare-table th:nth-child(3) { color: var(--accent4); }
+  .compare-table td {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .compare-table td:first-child { color: var(--muted); font-family: var(--font-code); font-size: 13px; }
+  .compare-table td:nth-child(2) { color: var(--text); }
+  .compare-table td:nth-child(3) { color: var(--accent4); }
+
+  /* ── CONSENSUS CARDS ── */
+  .consensus-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .consensus-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .consensus-card.highlight {
+    border-color: var(--accent);
+    background: linear-gradient(135deg, rgba(0,194,255,0.07), var(--surface));
+  }
+  .consensus-card .badge {
+    font-family: var(--font-code);
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .badge-pow { background: rgba(239,68,68,0.15); color: var(--accent5); }
+  .badge-pos { background: rgba(16,185,129,0.15); color: var(--accent3); }
+  .badge-poa { background: rgba(245,158,11,0.15); color: var(--accent4); }
+  .badge-xdpos { background: rgba(0,194,255,0.15); color: var(--accent); }
+  .consensus-card h3 { font-family: var(--font-display); font-size: 1.1rem; color: var(--white); margin-bottom: 12px; }
+
+  /* ── FLOW DIAGRAM ── */
+  .flow {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 10px;
+  }
+  .flow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .flow-step .dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+  .flow-connector {
+    width: 2px;
+    height: 16px;
+    background: var(--border);
+    margin-left: 13px;
+  }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch-diagram {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-top: 32px;
+    position: relative;
+  }
+  .arch-runner {
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 10px;
+    padding: 14px 24px;
+    text-align: center;
+    font-family: var(--font-code);
+    font-weight: 600;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  .arch-connectors {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-bottom: 8px;
+  }
+  .arch-line {
+    width: 2px;
+    height: 30px;
+    background: var(--border);
+    margin: 0 auto;
+  }
+  .arch-nodes {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .arch-node {
+    flex: 1;
+    min-width: 160px;
+    max-width: 220px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+  }
+  .arch-node .node-icon { font-size: 1.8rem; margin-bottom: 8px; }
+  .arch-node .node-label {
+    font-family: var(--font-code);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  .arch-node .node-name { font-weight: 600; color: var(--white); font-size: 14px; }
+  .arch-node .node-desc { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* ── COMPONENTS ── */
+  .components-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+  }
+  .component-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: border-color 0.2s;
+  }
+  .component-item:hover { border-color: var(--accent2); }
+  .component-item .c-number {
+    font-family: var(--font-display);
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--border);
+    line-height: 1;
+    min-width: 40px;
+    transition: color 0.2s;
+  }
+  .component-item:hover .c-number { color: var(--accent2); }
+  .component-item .c-path {
+    font-family: var(--font-code);
+    font-size: 12px;
+    color: var(--accent3);
+    margin-bottom: 6px;
+  }
+  .component-item .c-title { font-weight: 700; color: var(--white); font-size: 1rem; margin-bottom: 6px; }
+  .component-item .c-desc { font-size: 13px; color: var(--muted); }
+
+  /* ── GATEWAY DIAGRAM ── */
+  .gateway-flow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    margin-top: 20px;
+  }
+  .gf-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 32px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    color: var(--text);
+    text-align: center;
+  }
+  .gf-box.gf-accent { border-color: var(--accent); color: var(--accent); }
+  .gf-arrow {
+    font-size: 20px;
+    color: var(--muted);
+    margin: 4px 0;
+    line-height: 1;
+  }
+  .gf-label { font-size: 11px; color: var(--muted); font-family: var(--font-code); margin-top: 4px; }
+
+  /* ── LEARNING PATH ── */
+  .learning-path {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 32px;
+    position: relative;
+  }
+  .lp-step {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    padding: 0 0 32px 0;
+    position: relative;
+  }
+  .lp-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 40px;
+    width: 2px;
+    bottom: 0;
+    background: var(--border);
+  }
+  .lp-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-code);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--muted);
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+  .lp-step.active .lp-num {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-color: var(--accent);
+    color: white;
+  }
+  .lp-step.done .lp-num {
+    background: rgba(16,185,129,0.15);
+    border-color: var(--accent3);
+    color: var(--accent3);
+  }
+  .lp-content { padding-top: 8px; }
+  .lp-level {
+    font-family: var(--font-code);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .lp-title { font-weight: 700; color: var(--white); font-size: 1rem; }
+  .lp-step.active .lp-title { color: var(--accent); }
+  .lp-step.done .lp-title { color: var(--accent3); }
+  .lp-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+    font-family: var(--font-code);
+    font-size: 13px;
+    overflow-x: auto;
+    margin-top: 16px;
+  }
+  .code-key { color: #79c0ff; }
+  .code-val { color: #a5d6ff; }
+  .code-str { color: #a8ff78; }
+  .code-num { color: #f0883e; }
+  .code-comment { color: var(--muted); font-style: italic; }
+
+  /* ── RPC TAGS ── */
+  .rpc-tags { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .rpc-tag {
+    font-family: var(--font-code);
+    font-size: 12px;
+    background: rgba(124,58,237,0.15);
+    border: 1px solid rgba(124,58,237,0.3);
+    color: #a78bfa;
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    padding: 40px 0;
+    text-align: center;
+    font-size: 13px;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    font-family: var(--font-code);
+  }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 0;
+  }
+  .nav-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    overflow-x: auto;
+  }
+  .nav-logo {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--accent);
+    white-space: nowrap;
+    margin-right: 12px;
+  }
+  nav a {
+    font-size: 12px;
+    font-family: var(--font-code);
+    color: var(--muted);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.2s;
+  }
+  nav a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    .analogy-strip { flex-direction: column; }
+    .analogy-arrow { display: none; }
+    .arch-connectors { gap: 20px; }
+    .lp-step:not(:last-child)::before { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo">HIVE × XDPoS</span>
+    <a href="#what-is-hive">What is Hive</a>
+    <a href="#clients">Clients</a>
+    <a href="#xdc-vs-eth">XDC vs ETH</a>
+    <a href="#consensus">Consensus</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#components">Components</a>
+    <a href="#rpc">RPC</a>
+    <a href="#learning">Learning Path</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="container">
+    <div class="hero-eyebrow">// blockchain testing infrastructure</div>
+    <h1>Hive for <span>XDPoS</span><br>Visual Explainer</h1>
+    <p class="hero-sub">An automated testing framework that launches blockchain clients in Docker containers and verifies correct behavior — extended for the XDC network.</p>
+
+    <div class="analogy-strip">
+      <div class="analogy-item">
+        <div class="emoji">☕</div>
+        <div class="tool">JUnit</div>
+        <div class="desc">Tests Java apps</div>
+      </div>
+      <div class="analogy-arrow">→</div>
+      <div class="analogy-item">
+        <div class="emoji">📮</div>
+        <div class="tool">Postman</div>
+        <div class="desc">Tests REST APIs</div>
+      </div>
+      <div class="analogy-arrow">→</div>
+      <div class="analogy-item" style="border: 1px solid rgba(0,194,255,0.4); background: rgba(0,194,255,0.04);">
+        <div class="emoji">⛓️</div>
+        <div class="tool" style="color: var(--accent);">Hive</div>
+        <div class="desc" style="color: var(--text);">Tests blockchain clients</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- WHAT IS HIVE -->
+<section id="what-is-hive">
+  <div class="container">
+    <div class="section-label">// 01 — overview</div>
+    <h2 class="section-title">What is Hive?</h2>
+    <p class="section-body">Hive is an automated testing framework originally built for Ethereum clients. It orchestrates Docker containers, connects them into a network, runs predefined tests, and generates reports — all without manual intervention.</p>
+
+    <div class="arch-diagram" style="margin-top: 32px;">
+      <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: stretch;">
+        <div style="flex: 1; min-width: 200px;">
+          <div style="font-family: var(--font-code); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px;">Hive does this automatically</div>
+          <div class="flow">
+            <div class="flow-step"><div class="dot" style="background: rgba(0,194,255,0.15); color: var(--accent);">1</div><span>Starts clients in Docker containers</span></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><div class="dot" style="background: rgba(16,185,129,0.15); color: var(--accent3);">2</div><span>Connects them into a network</span></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><div class="dot" style="background: rgba(245,158,11,0.15); color: var(--accent4);">3</div><span>Runs predefined test suites</span></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><div class="dot" style="background: rgba(124,58,237,0.15); color: var(--accent2);">4</div><span>Verifies network behavior</span></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><div class="dot" style="background: rgba(239,68,68,0.15); color: var(--accent5);">5</div><span>Generates test reports ✓ / ✗</span></div>
+          </div>
+        </div>
+        <div style="flex: 1; min-width: 200px; background: var(--surface2); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; gap: 10px;">
+          <div style="font-family: var(--font-code); font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 6px;">hive-for-xdpos</div>
+          <div style="font-size: 14px; color: var(--muted);">Original Hive → <span style="color: var(--text);">Built for Ethereum</span></div>
+          <div style="height: 1px; background: var(--border);"></div>
+          <div style="font-size: 14px; color: var(--muted);">hive-for-xdpos → <span style="color: var(--accent);">Extended for XDC</span></div>
+          <div style="font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.6;">XDC Network needed testing support for <strong style="color: var(--accent4);">XDPoS</strong> consensus — so developers forked Hive and added XDC-specific clients and simulators.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CLIENTS -->
+<section id="clients">
+  <div class="container">
+    <div class="section-label">// 02 — blockchain clients</div>
+    <h2 class="section-title">What Is a Blockchain Client?</h2>
+    <p class="section-body">Software that lets a computer participate in a blockchain network. Multiple clients can exist for the same network — they all speak the same rules and APIs. Hive verifies this compatibility.</p>
+
+    <div class="clients-grid">
+      <div class="client-card">
+        <div class="lang">Go</div>
+        <div class="name">Geth</div>
+      </div>
+      <div class="client-card">
+        <div class="lang" style="background: rgba(0,194,255,0.1); color: var(--accent);">C#</div>
+        <div class="name">Nethermind</div>
+      </div>
+      <div class="client-card">
+        <div class="lang" style="background: rgba(245,158,11,0.1); color: var(--accent4);">Java</div>
+        <div class="name">Besu</div>
+      </div>
+      <div class="client-card">
+        <div class="lang">Go</div>
+        <div class="name">Erigon</div>
+      </div>
+      <div class="client-card">
+        <div class="lang" style="background: rgba(239,68,68,0.1); color: var(--accent5);">Rust</div>
+        <div class="name">Reth</div>
+      </div>
+    </div>
+
+    <div class="code-block" style="margin-top: 24px;">
+      <span class="code-comment">// All clients must respond identically to this request</span><br>
+      {<br>
+      &nbsp;&nbsp;<span class="code-key">"method"</span>: <span class="code-str">"eth_blockNumber"</span><br>
+      }<br><br>
+      <span class="code-comment">// Whether you ask Geth, Besu, or Nethermind — same answer expected</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- XDC VS ETH -->
+<section id="xdc-vs-eth">
+  <div class="container">
+    <div class="section-label">// 03 — network comparison</div>
+    <h2 class="section-title">Ethereum vs XDC</h2>
+    <p class="section-body">Both networks are EVM-compatible and support Solidity smart contracts — but they differ significantly in consensus and performance.</p>
+
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>⟠ Ethereum</th>
+          <th>◈ XDC</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Consensus</td>
+          <td>Proof of Stake</td>
+          <td style="color: var(--accent);">XDPoS</td>
+        </tr>
+        <tr>
+          <td>Block Time</td>
+          <td>~12 seconds</td>
+          <td>~2 seconds ⚡</td>
+        </tr>
+        <tr>
+          <td>Validators</td>
+          <td>Thousands</td>
+          <td>108 Masternodes</td>
+        </tr>
+        <tr>
+          <td>Smart Contracts</td>
+          <td>Solidity ✓</td>
+          <td>Solidity ✓</td>
+        </tr>
+        <tr>
+          <td>EVM Compatible</td>
+          <td>Yes</td>
+          <td>Yes</td>
+        </tr>
+        <tr>
+          <td>Genesis Format</td>
+          <td><code style="font-size: 12px; color: var(--muted);">"difficulty": "1"</code></td>
+          <td><code style="font-size: 12px; color: var(--accent4);">"masternodes": [...]</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 20px; padding: 16px 20px; background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.2); border-radius: 10px; font-size: 13px; color: var(--muted);">
+      <span style="color: var(--accent5); font-family: var(--font-code); font-weight: 600;">⚠ Why some Ethereum tests fail on XDPoS</span><br>
+      The genesis block format differs — Ethereum tests pass a <code>difficulty</code> field while XDC expects a <code>masternodes</code> list. This is expected. XDC-specific tests were added to handle this.
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- CONSENSUS -->
+<section id="consensus">
+  <div class="container">
+    <div class="section-label">// 04 — consensus mechanisms</div>
+    <h2 class="section-title">Understanding XDPoS</h2>
+    <p class="section-body">XDPoS (Delegated Proof of Stake) sits at the intersection of Proof of Stake and elected validator committees.</p>
+
+    <div class="consensus-grid">
+      <div class="consensus-card">
+        <div class="badge badge-pow">PoW</div>
+        <h3>Proof of Work</h3>
+        <div class="flow">
+          <div class="flow-step"><div class="dot" style="background: rgba(239,68,68,0.1); color: var(--accent5); font-size:10px;">⛏</div><span style="font-size:13px;">Miners compete</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(239,68,68,0.1); color: var(--accent5); font-size:10px;">🧮</div><span style="font-size:13px;">Solve cryptographic puzzle</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(239,68,68,0.1); color: var(--accent5); font-size:10px;">📦</div><span style="font-size:13px;">Winner creates block</span></div>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 14px; font-family: var(--font-code);">Used by: Bitcoin, old ETH</div>
+      </div>
+
+      <div class="consensus-card">
+        <div class="badge badge-pos">PoS</div>
+        <h3>Proof of Stake</h3>
+        <div class="flow">
+          <div class="flow-step"><div class="dot" style="background: rgba(16,185,129,0.1); color: var(--accent3); font-size:10px;">🪙</div><span style="font-size:13px;">Stake coins as collateral</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(16,185,129,0.1); color: var(--accent3); font-size:10px;">✅</div><span style="font-size:13px;">Become a validator</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(16,185,129,0.1); color: var(--accent3); font-size:10px;">📦</div><span style="font-size:13px;">Create blocks</span></div>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 14px; font-family: var(--font-code);">Used by: Modern Ethereum</div>
+      </div>
+
+      <div class="consensus-card">
+        <div class="badge badge-poa">PoA</div>
+        <h3>Proof of Authority</h3>
+        <div class="flow">
+          <div class="flow-step"><div class="dot" style="background: rgba(245,158,11,0.1); color: var(--accent4); font-size:10px;">🔐</div><span style="font-size:13px;">Pre-approved validators</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(245,158,11,0.1); color: var(--accent4); font-size:10px;">🔁</div><span style="font-size:13px;">Take turns signing</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(245,158,11,0.1); color: var(--accent4); font-size:10px;">📦</div><span style="font-size:13px;">Create blocks</span></div>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 14px; font-family: var(--font-code);">Used by: Private chains, Clique</div>
+      </div>
+
+      <div class="consensus-card highlight">
+        <div class="badge badge-xdpos">XDPoS</div>
+        <h3>XDC Delegated PoS</h3>
+        <div class="flow">
+          <div class="flow-step"><div class="dot" style="background: rgba(0,194,255,0.1); color: var(--accent); font-size:10px;">🗳</div><span style="font-size:13px;">Users vote for validators</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(0,194,255,0.1); color: var(--accent); font-size:10px;">🏛</div><span style="font-size:13px;">108 Masternodes elected</span></div>
+          <div class="flow-connector"></div>
+          <div class="flow-step"><div class="dot" style="background: rgba(0,194,255,0.1); color: var(--accent); font-size:10px;">📦</div><span style="font-size:13px;">Masternodes create blocks</span></div>
+        </div>
+        <div style="font-size: 11px; color: var(--accent); margin-top: 14px; font-family: var(--font-code);">PoS + Elected validators</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ARCHITECTURE -->
+<section id="architecture">
+  <div class="container">
+    <div class="section-label">// 05 — system architecture</div>
+    <h2 class="section-title">How Hive Runs Tests</h2>
+    <p class="section-body">The test runner orchestrates multiple Docker containers in parallel. Each client runs in isolation but communicates over a shared virtual network.</p>
+
+    <div class="arch-diagram">
+      <div class="arch-runner">🧪 Hive Test Runner</div>
+      <div style="display: flex; justify-content: space-around; margin-bottom: 0;">
+        <div class="arch-line"></div>
+        <div class="arch-line"></div>
+        <div class="arch-line"></div>
+      </div>
+      <div class="arch-nodes">
+        <div class="arch-node">
+          <div class="node-icon">🐳</div>
+          <div class="node-label">Container 1</div>
+          <div class="node-name">Geth</div>
+          <div class="node-desc">Standard Ethereum client</div>
+        </div>
+        <div class="arch-node" style="border-color: rgba(0,194,255,0.4); background: rgba(0,194,255,0.04);">
+          <div class="node-icon">🐳</div>
+          <div class="node-label" style="color: var(--accent);">Container 2</div>
+          <div class="node-name">XDC Core Node</div>
+          <div class="node-desc">XDPoS consensus node</div>
+        </div>
+        <div class="arch-node" style="border-color: rgba(124,58,237,0.4); background: rgba(124,58,237,0.04);">
+          <div class="node-icon">🐳</div>
+          <div class="node-label" style="color: var(--accent2);">Container 3</div>
+          <div class="node-name">XDC Gateway</div>
+          <div class="node-desc">RPC proxy / ETH compat</div>
+        </div>
+      </div>
+      <div style="margin-top: 20px; padding: 14px; background: var(--surface2); border-radius: 8px; font-size: 13px; color: var(--muted); font-family: var(--font-code); text-align: center;">
+        All containers share a virtual Docker network ← test results aggregated by Hive Runner
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- COMPONENTS -->
+<section id="components">
+  <div class="container">
+    <div class="section-label">// 06 — new components in hive-for-xdpos</div>
+    <h2 class="section-title">What Was Added?</h2>
+    <p class="section-body">The XDPoS fork introduced four new directories — two clients and two simulator suites.</p>
+
+    <div class="components-list">
+      <div class="component-item">
+        <div class="c-number">01</div>
+        <div>
+          <div class="c-path">clients/xdpos</div>
+          <div class="c-title">XDC Core Node</div>
+          <div class="c-desc">The full XDC blockchain node. Participates in XDPoS consensus, creates and validates blocks, and executes smart contracts on the XDC EVM.</div>
+        </div>
+      </div>
+
+      <div class="component-item">
+        <div class="c-number">02</div>
+        <div>
+          <div class="c-path">clients/xdc-gateway</div>
+          <div class="c-title">XDC Gateway (RPC Proxy)</div>
+          <div class="c-desc">Acts as a reverse proxy between Ethereum tooling and XDC nodes — similar to how Nginx sits between users and backend servers. Forwards standard <code style="font-family: var(--font-code); font-size: 12px; color: var(--accent2);">eth_*</code> calls to the appropriate XDC node.</div>
+          <div class="gateway-flow" style="margin-top: 16px; align-items: flex-start; flex-direction: row; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <div class="gf-box">Application<br><span class="gf-label">(MetaMask / Web3)</span></div>
+            <div style="color: var(--muted);">→</div>
+            <div class="gf-box gf-accent">XDC Gateway<br><span class="gf-label">RPC Proxy</span></div>
+            <div style="color: var(--muted);">→</div>
+            <div class="gf-box">XDC Node<br><span class="gf-label">Blockchain</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="component-item">
+        <div class="c-number">03</div>
+        <div>
+          <div class="c-path">simulators/smoke/xdc</div>
+          <div class="c-title">XDC Smoke Tests</div>
+          <div class="c-desc">Basic sanity checks: do nodes start? Do they discover each other? Do peers connect? If two nodes can handshake ↔ the smoke test passes.</div>
+        </div>
+      </div>
+
+      <div class="component-item">
+        <div class="c-number">04</div>
+        <div>
+          <div class="c-path">simulators/xdc/rpc-compat</div>
+          <div class="c-title">RPC Compatibility Tests</div>
+          <div class="c-desc">Ensures every standard Ethereum JSON-RPC method responds correctly when called against an XDC node. This is what allows MetaMask, Web3.js, and blockchain explorers to work with XDC.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- RPC -->
+<section id="rpc">
+  <div class="container">
+    <div class="section-label">// 07 — rpc compatibility</div>
+    <h2 class="section-title">Why RPC Compat Matters</h2>
+    <p class="section-body">Every popular Ethereum tool expects the same JSON-RPC interface. If XDC implements these correctly, all existing tooling works out of the box — no modifications needed.</p>
+
+    <div class="rpc-tags">
+      <span class="rpc-tag">eth_blockNumber</span>
+      <span class="rpc-tag">eth_getBalance</span>
+      <span class="rpc-tag">eth_sendRawTransaction</span>
+      <span class="rpc-tag">eth_call</span>
+      <span class="rpc-tag">eth_getLogs</span>
+      <span class="rpc-tag">eth_getTransactionReceipt</span>
+      <span class="rpc-tag">eth_getCode</span>
+      <span class="rpc-tag">net_version</span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 28px;">
+      <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">🦊</div>
+        <div style="font-weight: 600; color: var(--white); font-size: 14px;">MetaMask</div>
+        <div style="font-size: 12px; color: var(--accent3); margin-top: 4px;">✓ Works</div>
+      </div>
+      <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">📦</div>
+        <div style="font-weight: 600; color: var(--white); font-size: 14px;">Web3.js</div>
+        <div style="font-size: 12px; color: var(--accent3); margin-top: 4px;">✓ Works</div>
+      </div>
+      <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">⚡</div>
+        <div style="font-weight: 600; color: var(--white); font-size: 14px;">Ethers.js</div>
+        <div style="font-size: 12px; color: var(--accent3); margin-top: 4px;">✓ Works</div>
+      </div>
+      <div style="background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">🔍</div>
+        <div style="font-weight: 600; color: var(--white); font-size: 14px;">Block Explorer</div>
+        <div style="font-size: 12px; color: var(--accent3); margin-top: 4px;">✓ Works</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- LEARNING PATH -->
+<section id="learning">
+  <div class="container">
+    <div class="section-label">// 08 — your learning journey</div>
+    <h2 class="section-title">Where Hive Fits In</h2>
+    <p class="section-body">Hive makes the most sense once you've built a real private network. Here's the progression.</p>
+
+    <div class="learning-path">
+      <div class="lp-step done">
+        <div class="lp-num">✓</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 1</div>
+          <div class="lp-title">Install Geth</div>
+          <div class="lp-desc">Set up the Ethereum client on your machine</div>
+        </div>
+      </div>
+      <div class="lp-step active">
+        <div class="lp-num">2</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 2 — Current</div>
+          <div class="lp-title">Create Genesis Block</div>
+          <div class="lp-desc">Define the initial state of your blockchain with a genesis.json</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-num">3</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 3</div>
+          <div class="lp-title">Create a Private Blockchain</div>
+          <div class="lp-desc">Bootstrap a local chain using Clique PoA consensus</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-num">4</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 4</div>
+          <div class="lp-title">Connect Multiple Nodes</div>
+          <div class="lp-desc">Use enodes to peer 4 nodes together into a real network</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-num">5</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 5</div>
+          <div class="lp-title">Learn RPC APIs</div>
+          <div class="lp-desc">Interact with your chain via eth_* JSON-RPC methods</div>
+        </div>
+      </div>
+      <div class="lp-step">
+        <div class="lp-num">6</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 6</div>
+          <div class="lp-title">Dockerize Nodes</div>
+          <div class="lp-desc">Run each node in its own container on a shared Docker network</div>
+        </div>
+      </div>
+      <div class="lp-step" style="padding-bottom: 0;">
+        <div class="lp-num" style="background: rgba(0,194,255,0.08); border-color: rgba(0,194,255,0.3); color: rgba(0,194,255,0.5);">7</div>
+        <div class="lp-content">
+          <div class="lp-level">Level 7 — Destination</div>
+          <div class="lp-title" style="color: var(--muted);">Use Hive for Automated Testing</div>
+          <div class="lp-desc">Now everything clicks — you understand what Hive is testing and why</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 40px; padding: 24px; background: linear-gradient(135deg, rgba(0,194,255,0.07), rgba(124,58,237,0.07)); border: 1px solid rgba(0,194,255,0.2); border-radius: 14px;">
+      <div style="font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; color: var(--white); margin-bottom: 10px;">Key Takeaway</div>
+      <div style="color: var(--muted); font-size: 14px; line-height: 1.8;">
+        Hive is <strong style="color: var(--accent5);">not</strong> a blockchain. &nbsp;|&nbsp;
+        Hive is <strong style="color: var(--accent5);">not</strong> a node. &nbsp;|&nbsp;
+        Hive is <strong style="color: var(--accent5);">not</strong> a consensus mechanism.<br>
+        Hive is an <strong style="color: var(--accent);">automated testing framework</strong> that launches blockchain clients inside Docker containers and verifies they behave correctly. <code style="font-family: var(--font-code); font-size: 12px; color: var(--accent4);">hive-for-xdpos</code> extends this for the XDC network.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    hive-for-xdpos visual explainer &nbsp;·&nbsp; built for the XDC Smart Explorer learning arc
+  </div>
+</footer>
+
+</body>
+</html>
