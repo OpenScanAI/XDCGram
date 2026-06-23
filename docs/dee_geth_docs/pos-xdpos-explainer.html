@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoS & XDPoS Explained</title>
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e3a5f;
+    --accent: #1e88e5;
+    --accent2: #00bcd4;
+    --accent3: #7c3aed;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --alice: #818cf8;
+    --bob: #34d399;
+    --charlie: #fb923c;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, #0a0e1a 0%, #0f1e3d 50%, #0a1628 100%);
+    padding: 60px 20px 40px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(30,136,229,0.08) 0%, transparent 70%);
+    top: -200px; left: 50%; transform: translateX(-50%);
+  }
+  .hero h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+  .hero p { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+  /* Nav pills */
+  .nav {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    padding: 20px; background: var(--surface); border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .nav a {
+    padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
+    color: var(--muted); text-decoration: none; border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .nav a:hover { color: var(--text); border-color: var(--border); background: var(--surface2); }
+
+  /* Sections */
+  .section { padding: 60px 20px; max-width: 900px; margin: 0 auto; }
+  .section-title {
+    font-size: 1.8rem; font-weight: 700; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title .badge {
+    font-size: 0.75rem; padding: 3px 10px; border-radius: 12px;
+    background: rgba(30,136,229,0.15); color: var(--accent2); border: 1px solid rgba(0,188,212,0.3);
+    font-weight: 600; letter-spacing: 0.05em;
+  }
+  .section p { color: #94a3b8; margin-bottom: 24px; font-size: 1rem; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 60px 0; }
+
+  /* Cards */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 24px; margin-bottom: 20px;
+  }
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 24px; }
+
+  /* Comparison cards */
+  .compare-card {
+    background: var(--surface2); border-radius: 12px; padding: 20px;
+    border-left: 4px solid var(--accent);
+  }
+  .compare-card.pow { border-color: var(--orange); }
+  .compare-card.pos { border-color: var(--green); }
+  .compare-card.poa { border-color: var(--accent); }
+  .compare-card.xdpos { border-color: #a78bfa; }
+  .compare-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .compare-card ul { list-style: none; }
+  .compare-card ul li { font-size: 0.88rem; color: var(--muted); padding: 3px 0; }
+  .compare-card ul li::before { content: '→ '; color: var(--accent2); }
+
+  /* ====== ANIMATION: PoW Race ====== */
+  #pow-demo { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
+  .race-title { font-size: 0.9rem; color: var(--muted); margin-bottom: 16px; text-align: center; }
+  .miners { display: flex; flex-direction: column; gap: 12px; }
+  .miner-row { display: flex; align-items: center; gap: 12px; }
+  .miner-label { width: 70px; font-size: 0.85rem; font-weight: 600; text-align: right; }
+  .miner-bar-bg { flex: 1; height: 28px; background: rgba(255,255,255,0.04); border-radius: 6px; overflow: hidden; position: relative; }
+  .miner-bar {
+    height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px;
+    font-size: 0.75rem; font-weight: 600; color: white; transition: width 0.1s linear;
+    background: linear-gradient(90deg, rgba(30,136,229,0.4), rgba(30,136,229,0.7));
+  }
+  .miner-row[data-miner="Alice"] .miner-bar { background: linear-gradient(90deg, rgba(129,140,248,0.4), rgba(129,140,248,0.8)); }
+  .miner-row[data-miner="Bob"] .miner-bar { background: linear-gradient(90deg, rgba(52,211,153,0.4), rgba(52,211,153,0.8)); }
+  .miner-row[data-miner="Charlie"] .miner-bar { background: linear-gradient(90deg, rgba(251,146,60,0.4), rgba(251,146,60,0.8)); }
+  .miner-hash { width: 80px; font-size: 0.7rem; color: var(--muted); font-family: monospace; }
+  .pow-result { text-align: center; margin-top: 16px; padding: 12px; border-radius: 8px; font-size: 0.9rem; font-weight: 600; display: none; }
+  .pow-result.show { display: block; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--green); }
+  .btn { padding: 8px 20px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; font-weight: 600; background: var(--accent); color: white; margin-top: 16px; transition: opacity 0.2s; }
+  .btn:hover { opacity: 0.85; }
+  .btn-center { text-align: center; }
+
+  /* ====== ANIMATION: PoS Slots ====== */
+  .slots-container { display: flex; gap: 8px; flex-wrap: wrap; margin: 20px 0; }
+  .slot {
+    flex: 1; min-width: 80px; border-radius: 12px; padding: 14px 10px; text-align: center;
+    border: 2px solid var(--border); background: var(--surface2);
+    transition: all 0.4s ease; cursor: default;
+  }
+  .slot .slot-num { font-size: 0.7rem; color: var(--muted); margin-bottom: 4px; }
+  .slot .slot-name { font-size: 1rem; font-weight: 700; }
+  .slot .slot-status { font-size: 0.7rem; margin-top: 4px; color: var(--muted); }
+  .slot.active { border-color: var(--green); background: rgba(16,185,129,0.1); transform: scale(1.05); }
+  .slot.done { border-color: var(--border); background: rgba(16,185,129,0.05); opacity: 0.6; }
+  .slot.missed { border-color: var(--red); background: rgba(239,68,68,0.08); }
+  .slot[data-validator="Alice"] .slot-name { color: var(--alice); }
+  .slot[data-validator="Bob"] .slot-name { color: var(--bob); }
+  .slot[data-validator="Charlie"] .slot-name { color: var(--charlie); }
+
+  /* ====== Block chain visual ====== */
+  .chain { display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 20px 0; }
+  .block-box {
+    min-width: 110px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px; text-align: center; position: relative;
+    transition: all 0.4s ease;
+  }
+  .block-box .b-num { font-size: 0.7rem; color: var(--muted); }
+  .block-box .b-label { font-size: 0.85rem; font-weight: 700; margin: 4px 0; }
+  .block-box .b-validator { font-size: 0.7rem; }
+  .block-box.finalized { border-color: var(--green); background: rgba(16,185,129,0.08); }
+  .block-box.pending { border-color: var(--orange); background: rgba(245,158,11,0.08); animation: pulse 1s infinite; }
+  .block-connector { display: flex; align-items: center; padding: 0 4px; color: var(--border); font-size: 1.2rem; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+  /* ====== XDPoS Validator Grid ====== */
+  .validator-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 8px; margin: 20px 0; }
+  .validator-dot {
+    aspect-ratio: 1; border-radius: 12px; background: var(--surface2); border: 1px solid var(--border);
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    font-size: 0.65rem; color: var(--muted); transition: all 0.3s; cursor: default;
+  }
+  .validator-dot .v-num { font-size: 0.8rem; font-weight: 700; color: var(--text); }
+  .validator-dot.leader { background: rgba(30,136,229,0.2); border-color: var(--accent); }
+  .validator-dot.leader .v-num { color: var(--accent); }
+  .validator-dot.signed { background: rgba(16,185,129,0.1); border-color: var(--green); }
+  .validator-dot.signed .v-num { color: var(--green); }
+
+  /* ====== Flow diagram ====== */
+  .flow { display: flex; flex-direction: column; align-items: center; gap: 0; }
+  .flow-step {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 28px; text-align: center; min-width: 220px; position: relative;
+    font-size: 0.9rem; font-weight: 600; transition: all 0.3s;
+  }
+  .flow-step.highlight { border-color: var(--accent); background: rgba(30,136,229,0.1); color: var(--accent2); }
+  .flow-arrow { width: 2px; height: 24px; background: var(--border); margin: 0 auto; position: relative; }
+  .flow-arrow::after { content: '▼'; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); color: var(--border); font-size: 0.8rem; }
+
+  /* ====== Transaction pool ====== */
+  .tx-pool { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+  .tx-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 8px 12px; border-radius: 8px; margin-bottom: 8px; font-size: 0.85rem;
+    background: var(--surface); border: 1px solid var(--border); transition: all 0.4s;
+  }
+  .tx-item .tx-from { color: var(--alice); }
+  .tx-item .tx-to { color: var(--bob); }
+  .tx-item .tx-amt { color: var(--green); font-weight: 700; font-family: monospace; }
+  .tx-item.consumed { opacity: 0.3; text-decoration: line-through; }
+  .tx-item .tx-status { font-size: 0.7rem; color: var(--muted); }
+
+  /* Signature row */
+  .sig-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+  .sig-chip {
+    padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    transition: all 0.3s;
+  }
+  .sig-chip.signed { border-color: var(--green); background: rgba(16,185,129,0.1); color: var(--green); }
+
+  /* Stats bar */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin: 24px 0; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
+  .stat .s-val { font-size: 2rem; font-weight: 800; color: var(--accent2); }
+  .stat .s-label { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+
+  /* Offline sim */
+  .offline-box { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.2); border-radius: 12px; padding: 16px; margin: 12px 0; }
+  .offline-box .ol-title { color: var(--red); font-weight: 700; font-size: 0.9rem; margin-bottom: 8px; }
+
+  /* Log */
+  .log { background: #0d1117; border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: monospace; font-size: 0.78rem; max-height: 160px; overflow-y: auto; }
+  .log .log-line { padding: 2px 0; color: var(--muted); }
+  .log .log-line.ok { color: var(--green); }
+  .log .log-line.warn { color: var(--orange); }
+  .log .log-line.info { color: var(--accent2); }
+
+  footer { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 0.85rem; border-top: 1px solid var(--border); }
+  footer span { color: var(--accent2); }
+
+  @media(max-width:600px) {
+    .section { padding: 40px 16px; }
+    .chain { gap: 0; }
+    .block-box { min-width: 85px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>PoS & XDPoS Explained</h1>
+  <p>Interactive visual guide to modern blockchain consensus — from mining races to validator turns</p>
+</div>
+
+<nav class="nav">
+  <a href="#pow">⛏ PoW</a>
+  <a href="#pos">🔄 PoS</a>
+  <a href="#blocks">📦 Blocks</a>
+  <a href="#offline">📡 Offline</a>
+  <a href="#xdpos">🏛 XDPoS</a>
+  <a href="#flow">📊 Flow</a>
+  <a href="#compare">⚖ Compare</a>
+</nav>
+
+<!-- ===== POW ===== -->
+<div class="section" id="pow">
+  <div class="section-title">
+    ⛏ Proof of Work <span class="badge">RACE</span>
+  </div>
+  <p>In Bitcoin-style mining, validators compete in a mathematical race. Whoever solves the puzzle first earns the right to create the block — wasting enormous energy in the process.</p>
+
+  <div id="pow-demo">
+    <div class="race-title">🏁 Mining Race — click Start to watch them compete</div>
+    <div class="miners">
+      <div class="miner-row" data-miner="Alice">
+        <div class="miner-label" style="color:var(--alice)">Alice</div>
+        <div class="miner-bar-bg"><div class="miner-bar" id="bar-alice" style="width:0%"></div></div>
+        <div class="miner-hash" id="hash-alice">-</div>
+      </div>
+      <div class="miner-row" data-miner="Bob">
+        <div class="miner-label" style="color:var(--bob)">Bob</div>
+        <div class="miner-bar-bg"><div class="miner-bar" id="bar-bob" style="width:0%"></div></div>
+        <div class="miner-hash" id="hash-bob">-</div>
+      </div>
+      <div class="miner-row" data-miner="Charlie">
+        <div class="miner-label" style="color:var(--charlie)">Charlie</div>
+        <div class="miner-bar-bg"><div class="miner-bar" id="bar-charlie" style="width:0%"></div></div>
+        <div class="miner-hash" id="hash-charlie">-</div>
+      </div>
+    </div>
+    <div class="pow-result" id="pow-result"></div>
+    <div class="btn-center"><button class="btn" onclick="startPoW()">▶ Start Mining Race</button></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== POS ===== -->
+<div class="section" id="pos">
+  <div class="section-title">
+    🔄 Proof of Stake <span class="badge">TURNS</span>
+  </div>
+  <p>No race. No competition. The protocol simply assigns time slots to validators in advance — like a school timetable. Each validator knows their turn ahead of time.</p>
+
+  <div class="card">
+    <div class="race-title">Time Slot Assignment — click "Next Slot" to advance</div>
+    <div class="slots-container" id="slots-container">
+      <div class="slot" data-validator="Alice"><div class="slot-num">Slot 1</div><div class="slot-name">Alice</div><div class="slot-status">Waiting</div></div>
+      <div class="slot" data-validator="Bob"><div class="slot-num">Slot 2</div><div class="slot-name">Bob</div><div class="slot-status">Waiting</div></div>
+      <div class="slot" data-validator="Charlie"><div class="slot-num">Slot 3</div><div class="slot-name">Charlie</div><div class="slot-status">Waiting</div></div>
+      <div class="slot" data-validator="Alice"><div class="slot-num">Slot 4</div><div class="slot-name">Alice</div><div class="slot-status">Waiting</div></div>
+      <div class="slot" data-validator="Bob"><div class="slot-num">Slot 5</div><div class="slot-name">Bob</div><div class="slot-status">Waiting</div></div>
+    </div>
+    <div class="btn-center"><button class="btn" onclick="nextSlot()">▶ Next Slot</button></div>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="s-val" id="stat-blocks">0</div><div class="s-label">Blocks Created</div></div>
+    <div class="stat"><div class="s-val" id="stat-energy">100%</div><div class="s-label">Energy vs PoW</div></div>
+    <div class="stat"><div class="s-val" id="stat-leader">—</div><div class="s-label">Current Leader</div></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== BLOCKS ===== -->
+<div class="section" id="blocks">
+  <div class="section-title">
+    📦 Block Creation & Verification <span class="badge">INTERACTIVE</span>
+  </div>
+  <p>When a validator's slot arrives, they collect pending transactions, bundle them into a block, and broadcast it. Other validators then verify and sign it before it's finalized.</p>
+
+  <div class="card">
+    <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;color:var(--muted)">📥 TRANSACTION POOL</div>
+    <div class="tx-pool" id="tx-pool">
+      <div class="tx-item" id="tx1"><span><span class="tx-from">Rahul</span> → <span class="tx-to">Priya</span></span><span class="tx-amt">₹100</span><span class="tx-status">pending</span></div>
+      <div class="tx-item" id="tx2"><span><span class="tx-from">Amit</span> → <span class="tx-to">Neha</span></span><span class="tx-amt">₹50</span><span class="tx-status">pending</span></div>
+      <div class="tx-item" id="tx3"><span><span class="tx-from">John</span> → <span class="tx-to">Sarah</span></span><span class="tx-amt">₹25</span><span class="tx-status">pending</span></div>
+    </div>
+
+    <div style="margin-top:20px;font-size:0.85rem;font-weight:600;margin-bottom:12px;color:var(--muted)">⛓ BLOCKCHAIN</div>
+    <div class="chain" id="chain">
+      <div class="block-box finalized"><div class="b-num">#100</div><div class="b-label">Genesis</div><div class="b-validator" style="color:var(--muted)">✔ final</div></div>
+    </div>
+
+    <div style="margin-top:20px;font-size:0.85rem;font-weight:600;margin-bottom:8px;color:var(--muted)">✍️ VALIDATOR SIGNATURES</div>
+    <div class="sig-row" id="sig-row">
+      <div class="sig-chip" id="sig-alice">Alice ⏳</div>
+      <div class="sig-chip" id="sig-bob">Bob ⏳</div>
+      <div class="sig-chip" id="sig-charlie">Charlie ⏳</div>
+    </div>
+
+    <div class="log" id="block-log"><div class="log-line">// Waiting for next block...</div></div>
+
+    <div class="btn-center" style="margin-top:16px"><button class="btn" onclick="createBlock()">📦 Create Next Block</button></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== OFFLINE ===== -->
+<div class="section" id="offline">
+  <div class="section-title">
+    📡 What If a Validator Goes Offline? <span class="badge">FAULT TOLERANCE</span>
+  </div>
+  <p>PoS and XDPoS networks are designed to be resilient. If a validator misses their slot (server crash, network issue), the protocol simply skips them and the next validator takes over.</p>
+
+  <div class="card">
+    <div class="offline-box" id="offline-status">
+      <div class="ol-title">🔴 Alice's server has crashed!</div>
+      <div style="font-size:0.85rem;color:#94a3b8">Slot 1 is Alice's turn — but she's unreachable. Network waiting for timeout...</div>
+    </div>
+    <div class="slots-container" id="offline-slots">
+      <div class="slot missed" data-validator="Alice" id="os1"><div class="slot-num">Slot 1</div><div class="slot-name">Alice</div><div class="slot-status">💀 offline</div></div>
+      <div class="slot" data-validator="Bob" id="os2"><div class="slot-num">Slot 2</div><div class="slot-name">Bob</div><div class="slot-status">Waiting</div></div>
+      <div class="slot" data-validator="Charlie" id="os3"><div class="slot-num">Slot 3</div><div class="slot-name">Charlie</div><div class="slot-status">Waiting</div></div>
+    </div>
+    <div class="log" id="offline-log">
+      <div class="log-line warn">[T+0s] Slot 1 started → Alice selected as leader</div>
+      <div class="log-line warn">[T+1s] Waiting for block from Alice...</div>
+      <div class="log-line warn">[T+2s] Still waiting...</div>
+    </div>
+    <div class="btn-center" style="margin-top:16px"><button class="btn" onclick="simulateOffline()">⚡ Simulate Timeout & Recovery</button></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== XDPOS ===== -->
+<div class="section" id="xdpos">
+  <div class="section-title">
+    🏛 XDPoS — XinFin Delegated PoS <span class="badge">XDC NETWORK</span>
+  </div>
+  <p>XDPoS uses 108 elected validators. One becomes the leader for each block, creates it, and the others verify and sign. Once enough signatures are collected, the block is finalized permanently.</p>
+
+  <div class="card">
+    <div style="font-size:0.85rem;font-weight:600;margin-bottom:12px;color:var(--muted)">108 VALIDATORS — one is leader, others sign</div>
+    <div class="validator-grid" id="val-grid"></div>
+    <div class="log" id="xdpos-log"><div class="log-line">// Click to start XDPoS block finalization</div></div>
+    <div class="btn-center" style="margin-top:16px"><button class="btn" onclick="runXDPoS()">🏛 Finalize XDPoS Block</button></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== FLOW ===== -->
+<div class="section" id="flow">
+  <div class="section-title">
+    📊 Complete Consensus Flow <span class="badge">ANIMATED</span>
+  </div>
+  <p>The full lifecycle of a block — from user submission to final confirmation on the chain.</p>
+
+  <div class="card" style="display:flex;justify-content:center">
+    <div class="flow" id="flow-diagram">
+      <div class="flow-step" id="f1">👤 Users Submit Transactions</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f2">📥 Transactions Enter Pool</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f3">🎯 Validator Selected as Leader</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f4">📦 Leader Creates Block</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f5">🔍 Other Validators Verify</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f6">✍️ Validators Sign Block</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f7">✅ Block Finalized</div>
+      <div class="flow-arrow"></div>
+      <div class="flow-step" id="f8">🔄 Next Validator Selected</div>
+    </div>
+  </div>
+  <div class="btn-center" style="margin-top:20px"><button class="btn" onclick="animateFlow()">▶ Animate Flow</button></div>
+</div>
+
+<hr class="divider">
+
+<!-- ===== COMPARE ===== -->
+<div class="section" id="compare">
+  <div class="section-title">
+    ⚖ Consensus Mechanisms Compared
+  </div>
+  <p>A quick overview of all four consensus types covered in this guide.</p>
+  <div class="card-grid">
+    <div class="compare-card pow">
+      <h3 style="color:var(--orange)">⛏ Proof of Work</h3>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">Examples: Bitcoin, old Ethereum</div>
+      <ul>
+        <li>Validators compete in a race</li>
+        <li>High energy consumption</li>
+        <li>Requires specialized hardware</li>
+        <li>Security from compute power</li>
+        <li>Slow finality</li>
+      </ul>
+    </div>
+    <div class="compare-card pos">
+      <h3 style="color:var(--green)">🔄 Proof of Stake</h3>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">Examples: Ethereum, Cardano, Solana</div>
+      <ul>
+        <li>Validators take turns</li>
+        <li>Low energy usage (~99% less)</li>
+        <li>No special hardware needed</li>
+        <li>Security from staked capital</li>
+        <li>Fast finality</li>
+      </ul>
+    </div>
+    <div class="compare-card poa">
+      <h3 style="color:var(--accent)">🏛 Proof of Authority</h3>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">Examples: Clique, Enterprise ETH</div>
+      <ul>
+        <li>Pre-approved validators only</li>
+        <li>Very fast block times</li>
+        <li>Centralized trust model</li>
+        <li>Security from identity/rep</li>
+        <li>Instant finality</li>
+      </ul>
+    </div>
+    <div class="compare-card xdpos">
+      <h3 style="color:#a78bfa">⚡ XDPoS</h3>
+      <div style="font-size:0.8rem;color:var(--muted);margin-bottom:10px">Examples: XDC Network</div>
+      <ul>
+        <li>108 elected validators</li>
+        <li>Leader rotation per block</li>
+        <li>Multi-layer verification</li>
+        <li>Cryptographic finality</li>
+        <li>High throughput</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Built with ❤️ for <span>XDC Network</span> education · PoS & XDPoS Visual Guide
+</footer>
+
+<script>
+// ===== POW RACE =====
+let powInterval = null;
+function startPoW() {
+  document.getElementById('pow-result').classList.remove('show');
+  const miners = [
+    { bar: document.getElementById('bar-alice'), hash: document.getElementById('hash-alice'), name: 'Alice', speed: 0.4 + Math.random()*0.6, progress: 0 },
+    { bar: document.getElementById('bar-bob'), hash: document.getElementById('hash-bob'), name: 'Bob', speed: 0.4 + Math.random()*0.6, progress: 0 },
+    { bar: document.getElementById('bar-charlie'), hash: document.getElementById('hash-charlie'), name: 'Charlie', speed: 0.4 + Math.random()*0.6, progress: 0 },
+  ];
+  miners.forEach(m => { m.bar.style.width = '0%'; m.hash.textContent = '...'; });
+  if(powInterval) clearInterval(powInterval);
+  let winner = null;
+  powInterval = setInterval(() => {
+    if(winner) return;
+    const hx = () => Math.floor(Math.random()*0xffff).toString(16).padStart(4,'0');
+    miners.forEach(m => {
+      m.progress = Math.min(100, m.progress + m.speed * (1 + Math.random()*2));
+      m.bar.style.width = m.progress + '%';
+      m.hash.textContent = hx()+hx();
+      if(m.progress >= 100 && !winner) {
+        winner = m;
+        clearInterval(powInterval);
+        const res = document.getElementById('pow-result');
+        res.textContent = `🏆 ${winner.name} solved the puzzle first! Block created — others wasted all that energy.`;
+        res.classList.add('show');
+        miners.forEach(x => { x.hash.textContent = x===winner ? '✔ SOLVED' : '✗ lost'; });
+      }
+    });
+  }, 60);
+}
+
+// ===== POS SLOTS =====
+let slotIndex = 0;
+const slots = document.querySelectorAll('#slots-container .slot');
+const energyValues = ['100%','~2%','~2%','~2%','~2%'];
+const leaders = ['—','Alice','Bob','Charlie','Alice','Bob'];
+function nextSlot() {
+  if(slotIndex >= slots.length) slotIndex = 0;
+  slots.forEach((s,i) => {
+    s.classList.remove('active','done');
+    if(i < slotIndex) { s.classList.add('done'); s.querySelector('.slot-status').textContent = '✔ done'; }
+    if(i === slotIndex) { s.classList.add('active'); s.querySelector('.slot-status').textContent = '⚡ ACTIVE'; }
+    if(i > slotIndex) s.querySelector('.slot-status').textContent = 'Waiting';
+  });
+  document.getElementById('stat-blocks').textContent = slotIndex;
+  document.getElementById('stat-energy').textContent = slotIndex > 0 ? '~2%' : '100%';
+  document.getElementById('stat-leader').textContent = slotIndex < slots.length ? slots[slotIndex].dataset.validator : '—';
+  slotIndex++;
+}
+
+// ===== BLOCK CREATION =====
+let blockNum = 100;
+let blockCreating = false;
+const txIds = ['tx1','tx2','tx3'];
+let txUsed = 0;
+function addLog(log,msg,cls='') {
+  const div = document.createElement('div');
+  div.className = 'log-line ' + cls;
+  div.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+  log.appendChild(div);
+  log.scrollTop = log.scrollHeight;
+}
+function addChainBlock(num, validator, color) {
+  const chain = document.getElementById('chain');
+  const conn = document.createElement('div');
+  conn.className = 'block-connector';
+  conn.textContent = '→';
+  const box = document.createElement('div');
+  box.className = 'block-box pending';
+  box.innerHTML = `<div class="b-num">#${num}</div><div class="b-label">Block</div><div class="b-validator" style="color:${color}">${validator}</div>`;
+  chain.appendChild(conn);
+  chain.appendChild(box);
+  setTimeout(() => { box.classList.remove('pending'); box.classList.add('finalized'); box.querySelector('.b-validator').textContent = '✔ final'; }, 2400);
+  return box;
+}
+const validators = [
+  {name:'Alice',color:'var(--alice)',id:'alice'},
+  {name:'Bob',color:'var(--bob)',id:'bob'},
+  {name:'Charlie',color:'var(--charlie)',id:'charlie'},
+];
+let vIdx = 0;
+function createBlock() {
+  if(blockCreating) return;
+  blockCreating = true;
+  blockNum++;
+  const v = validators[vIdx % 3]; vIdx++;
+  const log = document.getElementById('block-log');
+  log.innerHTML = '';
+  // reset sigs
+  ['alice','bob','charlie'].forEach(n => {
+    const chip = document.getElementById('sig-'+n);
+    chip.className = 'sig-chip';
+    chip.textContent = n.charAt(0).toUpperCase()+n.slice(1)+' ⏳';
+  });
+  addLog(log, `Slot ${blockNum-100}: ${v.name} selected as leader`, 'info');
+  // consume txs
+  if(txUsed < txIds.length) {
+    setTimeout(()=>{
+      document.getElementById(txIds[txUsed]).classList.add('consumed');
+      addLog(log, `Collecting transaction from pool...`, 'info');
+      txUsed++;
+    },400);
+  }
+  setTimeout(()=>{ addLog(log, `${v.name} creating Block #${blockNum}...`, 'info'); },800);
+  setTimeout(()=>{ addChainBlock(blockNum, v.name, v.color); }, 1000);
+  setTimeout(()=>{ addLog(log, 'Broadcasting to network...', 'info'); }, 1200);
+  // sign
+  const others = validators.filter(x=>x.name!==v.name);
+  setTimeout(()=>{
+    addLog(log, `${others[0].name} verifying signatures...`, '');
+    const c = document.getElementById('sig-'+others[0].id);
+    c.className='sig-chip signed'; c.textContent=others[0].name+' ✔';
+  }, 1600);
+  setTimeout(()=>{
+    addLog(log, `${others[1].name} verifying signatures...`, '');
+    const c = document.getElementById('sig-'+others[1].id);
+    c.className='sig-chip signed'; c.textContent=others[1].name+' ✔';
+  }, 2000);
+  setTimeout(()=>{
+    const self = document.getElementById('sig-'+v.id);
+    self.className='sig-chip signed'; self.textContent=v.name+' (leader) ✔';
+    addLog(log, `✅ Block #${blockNum} FINALIZED`, 'ok');
+    blockCreating = false;
+  }, 2400);
+}
+
+// ===== OFFLINE SIM =====
+let offlineDone = false;
+function simulateOffline() {
+  if(offlineDone) {
+    offlineDone=false;
+    document.getElementById('os1').className='slot missed';
+    document.getElementById('os1').querySelector('.slot-status').textContent='💀 offline';
+    document.getElementById('os2').className='slot';
+    document.getElementById('os2').querySelector('.slot-status').textContent='Waiting';
+    document.getElementById('os3').className='slot';
+    document.getElementById('os3').querySelector('.slot-status').textContent='Waiting';
+    document.getElementById('offline-log').innerHTML=`
+      <div class="log-line warn">[T+0s] Slot 1 started → Alice selected as leader</div>
+      <div class="log-line warn">[T+1s] Waiting for block from Alice...</div>
+      <div class="log-line warn">[T+2s] Still waiting...</div>`;
+    document.getElementById('offline-status').innerHTML='<div class="ol-title">🔴 Alice\'s server has crashed!</div><div style="font-size:0.85rem;color:#94a3b8">Slot 1 is Alice\'s turn — but she\'s unreachable. Network waiting for timeout...</div>';
+    return;
+  }
+  const log = document.getElementById('offline-log');
+  const addL = (msg,cls)=>{ const d=document.createElement('div'); d.className='log-line '+(cls||''); d.textContent=msg; log.appendChild(d); log.scrollTop=9999; };
+  setTimeout(()=>addL('[T+3s] Timeout reached — Alice skipped','warn'),300);
+  setTimeout(()=>{ addL('[T+4s] Network selects Bob for Slot 2 instead','info'); document.getElementById('os2').classList.add('active'); document.getElementById('os2').querySelector('.slot-status').textContent='⚡ ACTIVE'; },800);
+  setTimeout(()=>{ addL('[T+5s] Bob creates Block #101 ✔','ok'); },1400);
+  setTimeout(()=>{ addL('[T+6s] Block finalized — chain continues normally ✅','ok'); document.getElementById('offline-status').innerHTML='<div class="ol-title" style="color:var(--green)">✅ Network recovered!</div><div style="font-size:0.85rem;color:#94a3b8">Bob filled in seamlessly. The blockchain never stopped — Alice\'s absence caused zero disruption.</div>'; offlineDone=true; },2000);
+}
+
+// ===== XDPOS =====
+function buildGrid() {
+  const grid = document.getElementById('val-grid');
+  grid.innerHTML = '';
+  for(let i=1;i<=108;i++) {
+    const d = document.createElement('div');
+    d.className = 'validator-dot';
+    d.id = 'vd-'+i;
+    d.innerHTML = `<div class="v-num">${i}</div><div>validator</div>`;
+    grid.appendChild(d);
+  }
+}
+buildGrid();
+let xdposRunning = false;
+function runXDPoS() {
+  if(xdposRunning) return;
+  xdposRunning = true;
+  buildGrid();
+  const log = document.getElementById('xdpos-log');
+  log.innerHTML = '';
+  const addL = (msg,cls)=>{ const d=document.createElement('div'); d.className='log-line '+(cls||''); d.textContent=msg; log.appendChild(d); log.scrollTop=9999; };
+  const leaderNum = Math.floor(Math.random()*108)+1;
+  const leaderEl = document.getElementById('vd-'+leaderNum);
+  leaderEl.classList.add('leader');
+  leaderEl.querySelector('div:last-child').textContent='LEADER';
+  addL(`[XDPoS] Validator #${leaderNum} selected as block leader`, 'info');
+  addL(`[XDPoS] Leader creating block #5000...`, 'info');
+  const signers = [];
+  while(signers.length < 72) {
+    const n = Math.floor(Math.random()*108)+1;
+    if(n!==leaderNum && !signers.includes(n)) signers.push(n);
+  }
+  let idx = 0;
+  const interval = setInterval(()=>{
+    if(idx >= signers.length) {
+      clearInterval(interval);
+      addL(`[XDPoS] 72/108 signatures collected — QUORUM REACHED ✅`, 'ok');
+      addL(`[XDPoS] Block #5000 FINALIZED — cannot be reversed`, 'ok');
+      xdposRunning = false;
+      return;
+    }
+    const n = signers[idx];
+    document.getElementById('vd-'+n).classList.add('signed');
+    if(idx === 0) addL(`[XDPoS] Validators signing...`, '');
+    if(idx === 35) addL(`[XDPoS] 36/108 signed... building consensus`, '');
+    idx++;
+  }, 40);
+}
+
+// ===== FLOW ANIMATION =====
+const flowSteps = ['f1','f2','f3','f4','f5','f6','f7','f8'];
+let flowRunning = false;
+function animateFlow() {
+  if(flowRunning) return;
+  flowRunning = true;
+  flowSteps.forEach(id=>document.getElementById(id).classList.remove('highlight'));
+  let i = 0;
+  const iv = setInterval(()=>{
+    if(i>0) document.getElementById(flowSteps[i-1]).classList.remove('highlight');
+    if(i >= flowSteps.length) { clearInterval(iv); flowRunning=false; return; }
+    document.getElementById(flowSteps[i]).classList.add('highlight');
+    i++;
+  }, 500);
+}
+</script>
+</body>
+</html>
