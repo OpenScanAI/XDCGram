@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PoS &amp; XDPoS — Protocol Field Notes</title>
+<style>
+:root{
+  --ink:#fffdf3;
+  --panel:#ffffff;
+  --panel-2:#fef3c7;
+  --line:#eaddaa;
+  --text:#2b2410;
+  --muted:#6b5f3e;
+  --faint:#9c9066;
+  --copper:#b8860b;
+  --copper-dim:#8a6a1f;
+  --teal:#9a6b00;
+  --red:#c0392b;
+  --green:#2f7a3d;
+  --code-bg:#221c08;
+  --code-text:#f5e6b8;
+  --mono:ui-monospace,SFMono-Regular,'Consolas','Menlo','Courier New',monospace;
+  --sans:-apple-system,'Segoe UI',system-ui,Roboto,Helvetica,Arial,sans-serif;
+  --serif:Georgia,'Times New Roman',serif;
+}
+*{box-sizing:border-box;}
+html,body{ height:auto; min-height:100%; }
+html{scroll-behavior:smooth;}
+body{
+  margin:0; background:var(--ink); color:var(--text); font-family:var(--sans);
+  line-height:1.65; font-size:15.5px;
+}
+::selection{ background:var(--copper); color:#fffdf3; }
+
+/* ===== Layout shell ===== */
+.shell{ display:flex; align-items:stretch; min-height:100vh; width:100%; }
+.side{ flex:0 0 280px; width:280px; }
+main{ flex:1 1 auto; min-width:0; }
+@media (max-width:900px){ .shell{ flex-direction:column; } .side{ position:relative; height:auto; width:100%; flex:0 0 auto; } }
+
+/* ===== Sidebar ===== */
+.side{
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  background:var(--panel); border-right:1px solid var(--line);
+  padding:1.6rem 1.2rem 3rem;
+}
+.side::-webkit-scrollbar{ width:6px; }
+.side::-webkit-scrollbar-thumb{ background:var(--line); border-radius:3px; }
+.brand{ display:flex; align-items:center; gap:0.6rem; margin-bottom:0.3rem; }
+.brand-mark{
+  width:30px; height:30px; border:1px solid var(--copper); border-radius:6px;
+  display:flex; align-items:center; justify-content:center; font-family:var(--mono);
+  color:var(--copper); font-size:13px; font-weight:700; flex-shrink:0;
+}
+.brand-text{ font-family:var(--mono); font-size:0.78rem; color:var(--muted); letter-spacing:0.04em; }
+.brand-text b{ color:var(--text); display:block; font-size:0.92rem; letter-spacing:0; }
+.side-sub{ font-size:0.76rem; color:var(--faint); margin:0.9rem 0 1.4rem; padding-bottom:1.2rem; border-bottom:1px solid var(--line); font-family:var(--mono); }
+.nav-group{ margin-bottom:1.3rem; }
+.nav-label{ font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--copper-dim); margin:0 0 0.5rem 0.1rem; }
+.nav-group a{
+  display:flex; gap:0.5rem; align-items:baseline; color:var(--muted); text-decoration:none; font-size:0.85rem;
+  padding:0.28rem 0.4rem; border-radius:5px; border-left:2px solid transparent;
+}
+.nav-group a:hover{ color:var(--text); background:var(--panel-2); border-left-color:var(--copper-dim); }
+.nav-num{ font-family:var(--mono); font-size:0.72rem; color:var(--faint); min-width:1.6em; }
+
+/* ===== Main ===== */
+main{ max-width:880px; margin:0 auto; padding:3.2rem 2.4rem 6rem; }
+@media (max-width:640px){ main{ padding:2rem 1.2rem 4rem; } }
+
+.hero{ margin-bottom:3.5rem; }
+.hero .kicker{ font-family:var(--mono); color:var(--teal); font-size:0.8rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.9rem; }
+.hero h1{ font-family:var(--serif); font-size:2.5rem; font-weight:600; margin:0 0 1rem; color:#1a1502; line-height:1.15; }
+.hero p{ color:var(--muted); max-width:640px; font-size:1.02rem; }
+.readout{
+  margin-top:1.6rem; background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  padding:0; overflow:hidden; font-family:var(--mono); font-size:0.78rem;
+}
+.readout .bar{ display:flex; gap:0.4rem; padding:0.55rem 0.8rem; background:var(--panel-2); border-bottom:1px solid var(--line); }
+.readout .dot{ width:9px; height:9px; border-radius:50%; }
+.readout .bar span.title{ margin-left:0.5rem; color:var(--faint); font-size:0.74rem; }
+.readout .grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0; }
+.readout .cell{ padding:0.7rem 0.9rem; border-right:1px solid var(--line); border-top:1px solid var(--line); }
+.readout .cell .k{ color:var(--faint); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.06em; }
+.readout .cell .v{ color:var(--copper); margin-top:0.15rem; }
+
+part-divider{ display:block; }
+.part-divider{
+  margin:4.5rem 0 2.2rem; padding-top:2.2rem; border-top:1px solid var(--line);
+}
+.part-eyebrow{ font-family:var(--mono); color:var(--copper); font-size:0.78rem; letter-spacing:0.1em; text-transform:uppercase; }
+.part-divider h1{ font-family:var(--serif); font-size:2rem; color:#1a1502; margin:0.4rem 0 0.6rem; }
+.part-divider p{ color:var(--muted); max-width:620px; }
+
+section{ margin-bottom:2.6rem; scroll-margin-top:2rem; }
+.mod-head{ display:flex; align-items:baseline; gap:0.7rem; margin:0 0 0.9rem; }
+.mod-tag{ font-family:var(--mono); color:var(--faint); font-size:0.82rem; }
+section h2{ font-family:var(--sans); font-weight:600; font-size:1.32rem; color:#1a1502; margin:0; }
+h3{ font-family:var(--sans); font-weight:600; font-size:1.02rem; color:var(--copper); margin:1.5rem 0 0.6rem; }
+h4{ font-family:var(--sans); font-weight:600; font-size:0.92rem; color:var(--text); margin:1.1rem 0 0.4rem; }
+p{ color:var(--text); margin:0.6rem 0; }
+p.lead{ color:#4a4225; font-size:1rem; }
+a{ color:var(--teal); }
+.muted{ color:var(--muted); }
+ul,ol{ padding-left:1.3rem; margin:0.6rem 0; }
+li{ margin-bottom:0.4rem; }
+li strong{ color:#171204; }
+code, .code{ font-family:var(--mono); background:var(--panel-2); padding:0.12rem 0.38rem; border-radius:4px; font-size:0.86em; border:1px solid var(--line); color:#8a5a00; }
+
+/* terminal-styled code blocks — kept dark for contrast against the light page, like a code editor pane */
+.term{ margin:1.1rem 0; border:1px solid var(--line); border-radius:9px; overflow:hidden; background:var(--code-bg); box-shadow:0 2px 10px rgba(184,134,11,0.08); }
+.term .tbar{ display:flex; align-items:center; gap:0.45rem; padding:0.5rem 0.75rem; background:#2c2410; border-bottom:1px solid #3a3010; }
+.term .tdot{ width:9px; height:9px; border-radius:50%; }
+.term .tdot.r{ background:#e8685c; } .term .tdot.y{ background:#e8c84d; } .term .tdot.g{ background:#7fd88f; }
+.term .tname{ margin-left:0.4rem; font-family:var(--mono); font-size:0.72rem; color:#a89968; }
+.term pre{ margin:0; padding:1rem 1.1rem; overflow-x:auto; font-family:var(--mono); font-size:0.82rem; line-height:1.6; color:var(--code-text); }
+pre{ background:var(--code-bg); border:1px solid var(--line); padding:1rem; border-radius:8px; overflow-x:auto; font-size:0.85rem; font-family:var(--mono); color:var(--code-text); }
+
+table{ width:100%; border-collapse:collapse; margin:1.1rem 0; font-size:0.88rem; box-shadow:0 1px 4px rgba(184,134,11,0.06); }
+th,td{ border:1px solid var(--line); padding:0.6rem 0.7rem; text-align:left; vertical-align:top; }
+th{ background:var(--panel-2); color:#8a5a00; font-weight:600; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.04em; }
+tr:nth-child(even) td{ background:#fffaf0; }
+
+.card{ background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:1.2rem 1.3rem; margin:1.2rem 0; box-shadow:0 1px 6px rgba(184,134,11,0.07); }
+.diagram{ margin:1.4rem 0; border:1px solid var(--line); border-radius:12px; background:linear-gradient(180deg,#fffef8,#fef8e0); padding:1rem 0.5rem; box-shadow:0 2px 10px rgba(184,134,11,0.09); overflow-x:auto; }
+.diagram .dcap{ font-family:var(--mono); font-size:0.72rem; color:var(--faint); text-align:center; margin-top:0.4rem; letter-spacing:0.03em; }
+.diagram svg{ display:block; margin:0 auto; max-width:100%; height:auto; }
+.card h4{ margin-top:0; }
+.card.info{ border-left:3px solid var(--teal); }
+.card.warn{ border-left:3px solid var(--copper); }
+.card.danger{ border-left:3px solid var(--red); }
+.card.good{ border-left:3px solid var(--green); }
+
+.qa{ margin:1.2rem 0; border:1px solid var(--line); border-radius:10px; overflow:hidden; }
+.qa .q{ background:var(--panel-2); padding:0.8rem 1.1rem; font-family:var(--mono); color:var(--copper); font-size:0.86rem; border-bottom:1px solid var(--line); }
+.qa .a{ padding:1rem 1.1rem; background:var(--panel); }
+
+hr{ border:0; border-top:1px solid var(--line); margin:2.4rem 0; }
+footer{ text-align:center; padding:2.5rem 1rem; color:var(--faint); border-top:1px solid var(--line); font-family:var(--mono); font-size:0.78rem; }
+.badge{ display:inline-block; font-family:var(--mono); font-size:0.7rem; padding:0.15rem 0.5rem; border-radius:20px; border:1px solid var(--line); color:var(--muted); margin-right:0.4rem; }
+.top-anchor{ position:fixed; bottom:1.4rem; right:1.4rem; background:var(--panel); border:1px solid var(--line); color:var(--muted); font-family:var(--mono); font-size:0.72rem; padding:0.5rem 0.8rem; border-radius:20px; text-decoration:none; }
+.top-anchor:hover{ color:var(--copper); border-color:var(--copper-dim); }
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div class="brand">
+    <div class="brand-mark">λ</div>
+    <div class="brand-text"><b>Field Notes</b>PROTOCOL / CONSENSUS</div>
+  </div>
+  <div class="side-sub">Study track: generic PoS → XDPoS → pvt-xdpos devnet. Compiled from XDPoSChain source, release v2.7.1, and the pvt-xdpos build notes.</div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part I — Proof of Stake</div>
+    <a href="#m1"><span class="nav-num">01</span>Why PoS exists</a>
+    <a href="#m2"><span class="nav-num">02</span>PoS fundamentals</a>
+    <a href="#m3"><span class="nav-num">03</span>Validator architecture</a>
+    <a href="#m4"><span class="nav-num">04</span>Staking</a>
+    <a href="#m5"><span class="nav-num">05</span>Ethereum PoS architecture</a>
+    <a href="#m6"><span class="nav-num">06</span>Consensus</a>
+    <a href="#m7"><span class="nav-num">07</span>Byzantine fault tolerance</a>
+    <a href="#m8"><span class="nav-num">08</span>Casper FFG</a>
+    <a href="#m9"><span class="nav-num">09</span>Fork choice (LMD GHOST)</a>
+    <a href="#m10"><span class="nav-num">10</span>Slots &amp; epochs</a>
+    <a href="#m11"><span class="nav-num">11</span>Block proposal</a>
+    <a href="#m12"><span class="nav-num">12</span>Attestations</a>
+    <a href="#m13"><span class="nav-num">13</span>Rewards</a>
+    <a href="#m14"><span class="nav-num">14</span>Slashing</a>
+    <a href="#m15"><span class="nav-num">15</span>Security</a>
+    <a href="#m16"><span class="nav-num">16</span>Gas system</a>
+    <a href="#m17"><span class="nav-num">17</span>Transactions</a>
+    <a href="#m18"><span class="nav-num">18</span>Cryptography</a>
+    <a href="#m19"><span class="nav-num">19</span>Networking</a>
+    <a href="#m20"><span class="nav-num">20</span>Execution layer / EVM</a>
+    <a href="#m21"><span class="nav-num">21</span>Smart contracts</a>
+    <a href="#m22"><span class="nav-num">22</span>Token standards</a>
+    <a href="#m23"><span class="nav-num">23</span>DeFi</a>
+    <a href="#m24"><span class="nav-num">24</span>Layer 2</a>
+    <a href="#m25"><span class="nav-num">25</span>Developer stack</a>
+    <a href="#m26"><span class="nav-num">26</span>Node development</a>
+    <a href="#m27"><span class="nav-num">27</span>Blockchain security</a>
+    <a href="#m28"><span class="nav-num">28</span>Production systems</a>
+    <a href="#m29"><span class="nav-num">29</span>Build your own PoS chain</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part II — XDC / XDPoS</div>
+    <a href="#xdc-what"><span class="nav-num">→</span>What is XDC</a>
+    <a href="#xdpos-what"><span class="nav-num">→</span>What is XDPoS</a>
+    <a href="#xdpos-v1"><span class="nav-num">→</span>XDPoS v1 internals</a>
+    <a href="#xdpos-v2"><span class="nav-num">→</span>XDPoS v2 internals (BFT)</a>
+    <a href="#xdpos-masternodes"><span class="nav-num">→</span>Masternode election</a>
+    <a href="#xdpos-vs-eth"><span class="nav-num">→</span>XDPoS vs Ethereum PoS</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part III — Puppeth</div>
+    <a href="#puppeth"><span class="nav-num">→</span>What Puppeth is &amp; does</a>
+    <a href="#puppeth-flow"><span class="nav-num">→</span>Menu walkthrough</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part IV — Nodes</div>
+    <a href="#nodes"><span class="nav-num">→</span>Node types</a>
+    <a href="#nodes-flow"><span class="nav-num">→</span>Connection lifecycle</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part V — pvt-xdpos repo</div>
+    <a href="#repo"><span class="nav-num">→</span>What the repo is</a>
+    <a href="#repo-vs-pos"><span class="nav-num">→</span>vs. textbook PoS</a>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Part VI — Genesis</div>
+    <a href="#genesis"><span class="nav-num">→</span>Field-by-field</a>
+    <a href="#genesis-flow"><span class="nav-num">→</span>init → state root</a>
+  </div>
+</aside>
+
+<main>
+
+<div class="hero">
+  <div class="kicker">Study track · PoS → XDPoS → pvt-xdpos</div>
+  <h1>Proof of Stake, XDPoS, and a private XDC devnet — every layer, explained properly</h1>
+  <p class="lead">This is a from-first-principles reference: generic Proof-of-Stake theory (Part I), how XinFin's XDPoS consensus actually differs under the hood (Part II), what Puppeth generates and why (Part III), the node roles in a running network (Part IV), how the <code>pvt-xdpos</code> private devnet maps back onto PoS theory (Part V), and the genesis block field-by-field (Part VI).</p>
+  <div class="readout">
+    <div class="bar"><div class="dot" style="background:#f2726b"></div><div class="dot" style="background:#e2c04d"></div><div class="dot" style="background:#7fd88f"></div><span class="title">pvt-xdpos · private-genesis.json</span></div>
+    <div class="grid">
+      <div class="cell"><div class="k">chainId</div><div class="v">9876</div></div>
+      <div class="cell"><div class="k">consensus</div><div class="v">XDPoS v2 (BFT)</div></div>
+      <div class="cell"><div class="k">block period</div><div class="v">2s</div></div>
+      <div class="cell"><div class="k">epoch</div><div class="v">900 blocks</div></div>
+      <div class="cell"><div class="k">gap</div><div class="v">450 blocks</div></div>
+      <div class="cell"><div class="k">cert threshold</div><div class="v">0.667</div></div>
+      <div class="cell"><div class="k">masternodes</div><div class="v">4 (max 108)</div></div>
+      <div class="cell"><div class="k">reward</div><div class="v">10 XDC</div></div>
+    </div>
+  </div>
+</div>
+<div class="part-divider" id="part1">
+  <div class="part-eyebrow">Part I</div>
+  <h1>Proof of Stake, from first principles</h1>
+  <p>Before XDPoS makes sense, generic PoS has to make sense — what problem it solves, who the actors are, and what "finality" actually means. Each module below opens with plain-English reasoning, then the term glossary.</p>
+</div>
+
+<section id="m1">
+<div class="mod-head"><span class="mod-tag">01</span><h2>Why Proof of Stake Exists</h2></div>
+<p class="lead">Proof of Work (PoW) secures a chain by making block production expensive — miners burn real electricity racing to find a hash below a target. That cost is the security: rewriting history means out-spending the entire honest network's energy bill. PoS keeps the same idea — attacking the chain must cost more than you could gain — but replaces "burn energy" with "burn capital you already own and can lose." That single substitution removes the environmental cost and, more importantly, gives the protocol a lever it never had before: it can now confiscate the attacker's stake (<em>slashing</em>), not just make the attack expensive to attempt.</p>
+
+<h3>Problems with Proof of Work</h3>
+<ul>
+<li><strong>Energy consumption:</strong> Security scales with hash rate, and hash rate scales with electricity. Bitcoin's annual draw is comparable to a mid-sized country — that cost is paid every single day, forever, just to keep the chain safe, whether or not anyone is attacking it.</li>
+<li><strong>Mining centralization:</strong> Because rewards are proportional to hash rate and variance is brutal for small miners, rational actors join pools. A handful of pools have at various points controlled >50% of Bitcoin's hash rate between them — the "decentralized" security model concentrates into a few operators.</li>
+<li><strong>ASIC monopoly:</strong> Once mining becomes profitable at scale, general-purpose hardware (CPUs/GPUs) gets out-competed by application-specific chips. A few fabricators (historically dominated by Bitmain) end up gatekeeping who can even participate profitably.</li>
+<li><strong>Scalability problems:</strong> Block time and block size are both constrained by propagation — if blocks are too big or too frequent, slower miners keep losing the race and get orphaned, which pushes toward centralization. This caps throughput independent of demand.</li>
+<li><strong>Environmental concerns:</strong> Regulatory and public pressure (e.g., China's 2021 mining ban) directly threatens PoW networks in ways that don't apply to PoS, since PoS's energy footprint is close to that of a normal data center.</li>
+<li><strong>Economic incentives:</strong> Miners must sell a portion of block rewards to cover hardware amortization and power bills, creating structural sell pressure on the token regardless of market sentiment.</li>
+<li><strong>Bitcoin's own limits:</strong> ~7 transactions/second, 10-minute average block time, and probabilistic (never absolute) finality — a transaction is only "safe" after several confirmations, and technically can still be reversed with enough hash power.</li>
+</ul>
+
+<h3>History of PoS</h3>
+<ul>
+<li><strong>Peercoin (2012):</strong> The first live PoS implementation, but it was hybrid — PoW created new coins, PoS ("minting") secured the chain using <em>coin age</em> (balance × time held) to weight who could mint the next block. It proved stake-weighted block production could work at all.</li>
+<li><strong>Casper (2015 onward):</strong> Ethereum research's name for its PoS research program, which split into two competing designs — Casper FFG (a finality gadget layered on top of a separate proposal mechanism, which is what shipped) and Casper CBC (correct-by-construction, a more theoretical BFT-family design that didn't ship).</li>
+<li><strong>The Merge (September 15, 2022):</strong> Ethereum's execution layer (the old PoW chain) was joined to the already-running Beacon Chain (PoS, live since Dec 2020), switching consensus from mining to validating in a single block without a hard restart of state.</li>
+<li><strong>Evolution:</strong> Early PoS designs were "chain-based" (closer to Nakamoto-style longest-chain, just with stake instead of hash power). Modern designs (Ethereum, Tendermint, XDPoS v2) are epoch/round-based with explicit BFT-style voting and provable finality, not probabilistic finality.</li>
+</ul>
+
+<div class="diagram">
+<svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="225" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#8a5a00">PROOF OF WORK</text>
+  <text x="675" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#8a5a00">PROOF OF STAKE</text>
+  <line x1="450" y1="10" x2="450" y2="300" stroke="#eaddaa" stroke-width="2" stroke-dasharray="6,6"/>
+
+  <!-- PoW column -->
+  <rect x="60" y="55" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="225" y="83" text-anchor="middle" font-size="12.5" fill="#2b2410">Miners burn electricity racing for a hash</text>
+  <path d="M225 101 L225 121" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="60" y="121" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="225" y="149" text-anchor="middle" font-size="12.5" fill="#2b2410">Winner proposes next block</text>
+  <path d="M225 167 L225 187" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="60" y="187" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="225" y="215" text-anchor="middle" font-size="12.5" fill="#2b2410">Security = total honest hash-rate cost</text>
+  <path d="M225 233 L225 253" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="60" y="253" width="330" height="46" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="225" y="276" text-anchor="middle" font-size="12" fill="#2b2410">Finality: probabilistic</text>
+  <text x="225" y="292" text-anchor="middle" font-size="10.5" fill="#6b5f3e">(deeper block = "safer", never absolute)</text>
+
+  <!-- PoS column -->
+  <rect x="510" y="55" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="675" y="83" text-anchor="middle" font-size="12.5" fill="#2b2410">Validators lock capital as stake</text>
+  <path d="M675 101 L675 121" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="510" y="121" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="675" y="149" text-anchor="middle" font-size="12.5" fill="#2b2410">Protocol selects a proposer + committee</text>
+  <path d="M675 167 L675 187" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="510" y="187" width="330" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="675" y="215" text-anchor="middle" font-size="12.5" fill="#2b2410">Security = stake at risk of slashing</text>
+  <path d="M675 233 L675 253" stroke="#b8860b" stroke-width="2" marker-end="url(#ah1)"/>
+  <rect x="510" y="253" width="330" height="46" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="675" y="276" text-anchor="middle" font-size="12" fill="#2b2410">Finality: absolute (BFT-style)</text>
+  <text x="675" y="292" text-anchor="middle" font-size="10.5" fill="#6b5f3e">(2/3+ quorum → provably irreversible)</text>
+
+  <defs>
+    <marker id="ah1" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#b8860b"/>
+    </marker>
+  </defs>
+</svg>
+<div class="dcap">Fig 1.1 — same goal (make rewriting history expensive), two different resources being spent</div>
+</div>
+</section>
+
+<section id="m2">
+<div class="mod-head"><span class="mod-tag">02</span><h2>Proof of Stake Fundamentals</h2></div>
+<p class="lead">The core mechanic: instead of "whoever finds the hash first proposes the block," it's "whoever the protocol deterministically-but-unpredictably selects, weighted by locked stake, proposes the block — and a committee of other stakers has to vote on it before it's considered settled."</p>
+<ul>
+<li><strong>Proof of Stake:</strong> A consensus mechanism where the right to propose and the weight of your vote on validity are both proportional to economic stake locked as collateral, which can be destroyed (slashed) for provable misbehavior.</li>
+<li><strong>Stake:</strong> Native tokens locked in a deposit/staking contract. It's simultaneously your ticket to participate and your bond against misbehaving.</li>
+<li><strong>Validator:</strong> The role (not necessarily a person) that runs the software, proposes blocks on its turn, and attests (votes) on other proposers' blocks every epoch.</li>
+<li><strong>Consensus:</strong> The rules by which every honest node ends up agreeing on the same ordered history, even though messages arrive at different times and some participants may be faulty or malicious.</li>
+<li><strong>Epoch:</strong> A fixed batch of slots (32 in Ethereum, ~6.4 minutes; 900 blocks in XDPoS v2, ~30 minutes) that acts as the checkpoint/accounting boundary — rewards, validator set changes, and finality all happen at epoch granularity.</li>
+<li><strong>Slot:</strong> The fixed time window in which exactly one proposer is allowed to publish a block (12s on Ethereum; 2s in this XDPoS devnet). A slot can be empty if the assigned proposer is offline or times out.</li>
+<li><strong>Committee:</strong> A pseudo-randomly sampled subset of the full validator set assigned to vote in a given slot — this exists so not every validator has to vote on every single block, which would not scale bandwidth-wise.</li>
+<li><strong>Beacon Chain:</strong> Ethereum's dedicated consensus-only chain — it doesn't run the EVM or hold user balances; it only tracks the validator registry, attestations, randomness, and finality, and tells the execution layer which blocks are canonical.</li>
+<li><strong>Validator set:</strong> The current registry of everyone with stake deposited, in whatever lifecycle state (pending/active/exiting).</li>
+<li><strong>Active validators:</strong> Currently eligible to be selected as proposer and required to attest every epoch.</li>
+<li><strong>Pending validators:</strong> Have deposited stake but are still in the activation queue — this queue exists deliberately, see churn limit below.</li>
+<li><strong>Exited validators:</strong> Have left the active set (voluntarily or by force) and are in or past the withdrawal process.</li>
+<li><strong>Churn limit:</strong> A hard cap on how many validators can enter or leave the active set per epoch. Without it, a huge coordinated exit could shrink the validator set instantly, which is dangerous both for liveness and because it would let an attacker "test" different validator-set compositions cheaply (a variant of stake-grinding).</li>
+</ul>
+</section>
+
+<section id="m3">
+<div class="mod-head"><span class="mod-tag">03</span><h2>Validator Architecture</h2></div>
+<p class="lead">A "validator" is not one program — on Ethereum it's the coordination of three separate pieces of software (or two, if you count consensus+execution as one integrated stack, which is what XDPoS actually does). Understanding the split matters because it explains <em>why</em> XDPoS's single-binary design (Part II) is architecturally simpler.</p>
+<ul>
+<li><strong>Validator lifecycle:</strong> deposit → pending (queued) → active (proposing/attesting) → exiting (voluntary or forced) → withdrawable (funds unlocked).</li>
+<li><strong>Validator keys:</strong> A BLS keypair for signing attestations/proposals (chosen because BLS signatures can be aggregated — thousands of votes compress into one signature), plus separate withdrawal credentials controlling where funds go on exit.</li>
+<li><strong>Validator client:</strong> The process that actually holds the signing key and produces attestations/block signatures on schedule (Lighthouse, Prysm, Teku, Nimbus, Lodestar). This is the only piece that needs the private key.</li>
+<li><strong>Consensus client:</strong> Runs Beacon Chain state transition, fork choice, gossip networking, and tells the validator client when it's due to act. Same binaries as above typically bundle both roles.</li>
+<li><strong>Execution client:</strong> Runs the EVM, mempool, and state (Geth, Nethermind, Erigon, Besu) — it has no concept of "validators" or "epochs" at all; it just executes transactions when told to by the consensus client via the Engine API.</li>
+<li><strong>Withdrawal credentials:</strong> Prefix <code>0x00</code> means funds return to a BLS key (older, requires a manual one-time upgrade to withdraw); prefix <code>0x01</code> points directly at an execution-layer address and enables automatic partial withdrawals.</li>
+<li><strong>Validator registration:</strong> A 32 ETH transaction to the deposit contract on the execution layer, carrying the validator's BLS pubkey, withdrawal credentials, and a signature proving key ownership.</li>
+<li><strong>Activation:</strong> After the deposit is observed and finalized, the validator enters the pending queue and is activated once its turn comes up under the churn limit.</li>
+<li><strong>Exit — voluntary:</strong> The operator signs an exit message; no penalty beyond forgone future rewards.</li>
+<li><strong>Exit — forced:</strong> The protocol itself ejects a validator, typically for an effective balance that's dropped too low (from accumulated penalties) — this is a safety valve, not a punishment on its own.</li>
+<li><strong>Withdrawal queue:</strong> Exits are rate-limited by the same churn logic as activations, so a mass exit still drains gradually rather than instantly destabilizing the validator set.</li>
+<li><strong>Partial withdrawal:</strong> Automatic sweep of any balance above 32 ETH (accumulated rewards) to the withdrawal address, without touching the validator's active status.</li>
+<li><strong>Full withdrawal:</strong> Only happens after a completed exit — the entire remaining balance is swept out and the validator is permanently retired.</li>
+</ul>
+
+<div class="diagram">
+<svg viewBox="0 0 940 220" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <!-- nodes -->
+  <g>
+    <rect x="10" y="80" width="130" height="56" rx="10" fill="#fef3c7" stroke="#eaddaa"/>
+    <text x="75" y="103" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2410">Deposited</text>
+    <text x="75" y="118" text-anchor="middle" font-size="10" fill="#6b5f3e">32 ETH sent to</text>
+    <text x="75" y="129" text-anchor="middle" font-size="10" fill="#6b5f3e">deposit contract</text>
+  </g>
+  <path d="M140 108 L190 108" stroke="#b8860b" stroke-width="2" marker-end="url(#ah2)"/>
+  <g>
+    <rect x="192" y="80" width="130" height="56" rx="10" fill="#fef3c7" stroke="#eaddaa"/>
+    <text x="257" y="103" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2410">Pending</text>
+    <text x="257" y="118" text-anchor="middle" font-size="10" fill="#6b5f3e">queued, waiting on</text>
+    <text x="257" y="129" text-anchor="middle" font-size="10" fill="#6b5f3e">churn limit</text>
+  </g>
+  <path d="M322 108 L372 108" stroke="#b8860b" stroke-width="2" marker-end="url(#ah2)"/>
+  <g>
+    <rect x="374" y="70" width="150" height="76" rx="10" fill="#fde68a" stroke="#c99a1f"/>
+    <text x="449" y="93" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2410">Active</text>
+    <text x="449" y="109" text-anchor="middle" font-size="10" fill="#6b5f3e">proposes blocks,</text>
+    <text x="449" y="121" text-anchor="middle" font-size="10" fill="#6b5f3e">attests every epoch,</text>
+    <text x="449" y="133" text-anchor="middle" font-size="10" fill="#6b5f3e">earns/loses rewards</text>
+  </g>
+  <path d="M524 108 L574 108" stroke="#b8860b" stroke-width="2" marker-end="url(#ah2)"/>
+  <g>
+    <rect x="576" y="80" width="150" height="56" rx="10" fill="#fef3c7" stroke="#eaddaa"/>
+    <text x="651" y="99" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2b2410">Exiting</text>
+    <text x="651" y="115" text-anchor="middle" font-size="10" fill="#6b5f3e">voluntary or forced,</text>
+    <text x="651" y="127" text-anchor="middle" font-size="10" fill="#6b5f3e">rate-limited by churn</text>
+  </g>
+  <path d="M726 108 L776 108" stroke="#b8860b" stroke-width="2" marker-end="url(#ah2)"/>
+  <g>
+    <rect x="778" y="80" width="150" height="56" rx="10" fill="#fef3c7" stroke="#eaddaa"/>
+    <text x="853" y="103" text-anchor="middle" font-size="12" font-weight="700" fill="#2b2410">Withdrawable</text>
+    <text x="853" y="119" text-anchor="middle" font-size="10" fill="#6b5f3e">full balance swept</text>
+    <text x="853" y="130" text-anchor="middle" font-size="10" fill="#6b5f3e">to withdrawal address</text>
+  </g>
+  <!-- side branch: slashed -->
+  <path d="M449 70 L449 40 L780 40 L780 78" stroke="#c0392b" stroke-width="2" fill="none" stroke-dasharray="5,4" marker-end="url(#ahr)"/>
+  <text x="614" y="34" text-anchor="middle" font-size="10.5" fill="#c0392b">equivocation detected → slashed → forced exit</text>
+  <!-- side branch: partial withdrawal loop -->
+  <path d="M449 146 Q449 178 449 146" stroke="#2f7a3d" stroke-width="2" fill="none"/>
+  <path d="M420 146 Q449 185 478 146" stroke="#2f7a3d" stroke-width="2" fill="none" marker-end="url(#ahg)"/>
+  <text x="449" y="200" text-anchor="middle" font-size="10" fill="#2f7a3d">partial withdrawal (rewards above 32 ETH swept automatically, stays Active)</text>
+
+  <defs>
+    <marker id="ah2" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b8860b"/></marker>
+    <marker id="ahr" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c0392b"/></marker>
+    <marker id="ahg" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f7a3d"/></marker>
+  </defs>
+</svg>
+<div class="dcap">Fig 3.1 — the validator state machine, start to finish</div>
+</div>
+</section>
+
+<section id="m4">
+<div class="mod-head"><span class="mod-tag">04</span><h2>Staking</h2></div>
+<p class="lead">"Staking" is really a spectrum of trade-offs between <em>how much control you keep</em> and <em>how much capital/technical effort you need</em>. XDPoS's masternode model (Part II) is closest to delegated staking — token holders vote for a fixed number of masternode operators rather than everyone running their own validator.</p>
+<ul>
+<li><strong>Native/solo staking:</strong> You personally run validator software and hold the full minimum deposit (32 ETH). Maximum control, maximum responsibility — if your node goes offline you eat the inactivity penalty yourself.</li>
+<li><strong>Delegated staking:</strong> You don't run anything; you delegate your tokens' voting weight to an operator you trust, who runs the infrastructure and shares rewards minus a commission (this is structurally what XDPoS masternode voting is).</li>
+<li><strong>Liquid staking:</strong> A protocol stakes on your behalf and mints a tradeable receipt token (e.g., stETH) representing your claim — you keep liquidity while still earning yield, at the cost of trusting the protocol's smart contracts and validator set.</li>
+<li><strong>Pool staking:</strong> Multiple people's sub-minimum deposits are pooled to collectively reach the 32 ETH requirement (e.g., Rocket Pool minipools) — this exists specifically because 32 ETH is too high a barrier for most individuals.</li>
+<li><strong>Custodial staking:</strong> An exchange holds your private keys and stakes for you (Coinbase, Binance) — convenient, but you don't control the keys, which reintroduces counterparty risk the whole point of self-custody was meant to remove.</li>
+<li><strong>Non-custodial staking:</strong> You keep signing/withdrawal control; you only delegate the staking <em>duty</em>, not custody of the asset.</li>
+</ul>
+<h3>Protocols &amp; liquid staking tokens</h3>
+<table>
+<tr><th>Protocol</th><th>Model</th><th>Receipt token</th></tr>
+<tr><td>Lido</td><td>Liquid staking, largest by TVL</td><td>stETH — rebases/accrues rewards</td></tr>
+<tr><td>Rocket Pool</td><td>Decentralized minipools</td><td>rETH — value-accruing (not rebasing)</td></tr>
+<tr><td>Coinbase</td><td>Custodial</td><td>cbETH — value-accruing</td></tr>
+<tr><td>Binance</td><td>Custodial, exchange-run</td><td>BETH / WBETH</td></tr>
+</table>
+</section>
+<section id="m5">
+<div class="mod-head"><span class="mod-tag">05</span><h2>Ethereum PoS Architecture</h2></div>
+<p class="lead">Post-Merge Ethereum is deliberately split into two independently-replaceable layers that talk over a minimal local API. This is the architectural choice XDPoS explicitly does <em>not</em> make — see Part II for why a single-binary design was chosen instead for a permissioned network.</p>
+<ul>
+<li><strong>Execution Layer (EL):</strong> Owns the EVM, account state, mempool, and receipts. From the EL's point of view, PoS doesn't exist — it just executes whatever block body the consensus layer hands it.</li>
+<li><strong>Consensus Layer (CL) / Beacon Chain:</strong> Owns validator registry, committees, attestations, randomness (RANDAO), and finality. It decides <em>which</em> execution payload is canonical, but never executes a transaction itself.</li>
+<li><strong>Engine API:</strong> A local, authenticated JSON-RPC interface (over the loopback interface, secured with a JWT secret) that the CL uses to hand the EL a new payload to execute/validate, and to ask "what's the current head."</li>
+</ul>
+<table>
+<tr><th>Execution clients</th><th>Consensus clients</th></tr>
+<tr><td>Geth</td><td>Prysm</td></tr>
+<tr><td>Nethermind</td><td>Lighthouse</td></tr>
+<tr><td>Erigon</td><td>Teku</td></tr>
+<tr><td>Besu</td><td>Nimbus, Lodestar</td></tr>
+</table>
+<div class="card info"><h4>Why this matters for XDPoS</h4><p>The EL/CL split exists mainly so Ethereum's huge, already-battle-tested EVM execution engine didn't have to be rewritten to add PoS — consensus was bolted on as a separate process. XDPoS never had that legacy constraint: it forked go-ethereum directly and wired the consensus engine straight into the same binary via geth's pluggable <code>consensus.Engine</code> interface (the same interface point used for Clique/PoA), so there's one process, one datadir, one RPC port doing both jobs.</p></div>
+</section>
+
+<section id="m6">
+<div class="mod-head"><span class="mod-tag">06</span><h2>Consensus</h2></div>
+<p class="lead">"Consensus algorithm" is really answering one question: <em>when message delivery timing is unpredictable and some participants might lie, how do independent nodes end up agreeing on one canonical history?</em> Different families answer it differently.</p>
+<ul>
+<li><strong>Byzantine Fault Tolerance (BFT):</strong> A family of protocols that tolerate up to some fraction of participants behaving arbitrarily (not just crashing, but actively lying) and still reach agreement.</li>
+<li><strong>PBFT:</strong> The classical practical BFT protocol (Castro &amp; Liskov, 1999) — three phases (pre-prepare, prepare, commit), each requiring a 2/3+ quorum of signed messages before moving on. Most modern blockchain BFT variants (Tendermint, XDPoS v2) are descendants of this idea.</li>
+<li><strong>Tendermint:</strong> Cosmos SDK's consensus engine — round-based BFT with instant, deterministic finality (a block is final the moment it's committed, no "wait N confirmations").</li>
+<li><strong>Casper FFG:</strong> Ethereum's finality gadget — not a full consensus protocol on its own, but an overlay that periodically finalizes checkpoints proposed by a separate chain-based proposal mechanism (LMD GHOST).</li>
+<li><strong>LMD GHOST:</strong> The fork-choice rule that decides which chain tip is "head" between finalization events.</li>
+<li><strong>Nakamoto consensus:</strong> The original longest/heaviest-chain rule (PoW Bitcoin) — no explicit voting, agreement emerges probabilistically from everyone extending what they believe is the heaviest valid chain.</li>
+<li><strong>Finality:</strong> The point past which a block is guaranteed (under the protocol's fault-tolerance assumption) never to be reverted. PoW only gives probabilistic finality; BFT-style PoS (Tendermint, XDPoS v2, Ethereum after 2 epochs) gives absolute finality.</li>
+<li><strong>Fork choice rule:</strong> The deterministic algorithm every node runs locally to pick "the" canonical head when it sees competing chains/blocks.</li>
+</ul>
+</section>
+
+<section id="m7">
+<div class="mod-head"><span class="mod-tag">07</span><h2>Byzantine Fault Tolerance, in detail</h2></div>
+<p class="lead">The name comes from the "Byzantine Generals Problem" (Lamport, Shostak, Pease, 1982): several generals surrounding a city must agree unanimously to attack or retreat, communicating only via messengers who might be traitors or simply too slow. The maths behind BFT protocols is the maths of solving that problem with cryptographic signatures instead of trusted messengers.</p>
+<ul>
+<li><strong>Honest majority assumption:</strong> BFT-style PoS protocols are safe as long as more than 2/3 of stake-weighted voting power is honest (not just >50% — the extra margin is needed because with exactly 2/3, an attacker controlling the remaining 1/3 could equivocate and still cause two different quorums to form).</li>
+<li><strong>Fault tolerance (3f+1 rule):</strong> To tolerate <code>f</code> Byzantine (arbitrarily malicious) nodes safely, classical BFT needs at least <code>3f+1</code> total participants — this is why validator/masternode counts are usually chosen to be one more than a multiple of 3 in principle (in practice rounded to convenient numbers like 108).</li>
+<li><strong>Safety:</strong> The guarantee that no two honest nodes ever finalize conflicting blocks at the same height — this must never break, under any network conditions, as long as the honest-majority assumption holds.</li>
+<li><strong>Liveness:</strong> The guarantee that the chain keeps producing new finalized blocks — this <em>can</em> stall temporarily under bad network conditions without being a safety violation (the chain pauses rather than forks).</li>
+<li><strong>Synchronous network model:</strong> Assumes a known upper bound on message delivery time — easier to build fast protocols on, but an unrealistic assumption for the open internet.</li>
+<li><strong>Asynchronous network model:</strong> No timing assumptions at all. The FLP impossibility result (Fischer–Lynch–Paterson, 1985) proves that deterministic consensus is <em>impossible</em> to guarantee under pure asynchrony if even one node can fail — so no real protocol assumes this.</li>
+<li><strong>Partial synchrony:</strong> The practical middle ground — messages are delivered within some bound <em>after</em> an unknown "global stabilization time." This is the model Ethereum and XDPoS actually design against: correct under bad conditions (safety never breaks), and fast under good conditions (liveness resumes once the network behaves).</li>
+</ul>
+</section>
+
+<section id="m8">
+<div class="mod-head"><span class="mod-tag">08</span><h2>Casper FFG</h2></div>
+<p class="lead">Casper FFG ("Friendly Finality Gadget") answers: given a chain that's already being extended by some proposal mechanism, how do we retroactively mark certain blocks as permanently irreversible?</p>
+<ul>
+<li><strong>Checkpoint:</strong> The first block of an epoch — the only blocks Casper FFG ever votes on (not every block, which would be too much data).</li>
+<li><strong>Justified checkpoint:</strong> A checkpoint that received attestations from validators controlling ≥2/3 of total stake, all voting for the same (source→target) checkpoint pair.</li>
+<li><strong>Finalized checkpoint:</strong> A justified checkpoint whose immediate child checkpoint is <em>also</em> justified — this two-hop rule is what makes finality provably irreversible: reverting it would require provably slashable double votes from at least 1/3 of all stake.</li>
+<li><strong>Epoch voting:</strong> Each active validator casts exactly one attestation per epoch (not per block), voting for a source and target checkpoint plus the current head — this is what keeps vote volume bounded regardless of how many slots exist per epoch.</li>
+<li><strong>Supermajority link:</strong> A source→target vote backed by ≥2/3 of stake — the fundamental unit Casper FFG's justification rule is built from.</li>
+<li><strong>Attestation:</strong> The signed vote itself, containing the validator's view of the current head, the source checkpoint, and the target checkpoint.</li>
+</ul>
+</section>
+
+<section id="m9">
+<div class="mod-head"><span class="mod-tag">09</span><h2>Fork Choice — LMD GHOST</h2></div>
+<p class="lead">Between finalization events, someone still has to decide "which tip do I build on right now." LMD GHOST is that rule.</p>
+<ul>
+<li><strong>Latest Message Driven (LMD):</strong> Only each validator's <em>most recent</em> attestation counts — older votes from the same validator are discarded, so the fork choice always reflects current opinion, not accumulated history.</li>
+<li><strong>Greediest Heaviest Observed SubTree (GHOST):</strong> At every fork point, walk toward the child subtree with the most cumulative attestation weight underneath it (not just weight on the immediate child block) — this correctly credits a branch even if votes are spread across several of its later blocks.</li>
+<li><strong>Combined algorithm:</strong> Start from the last justified checkpoint (the "safe" anchor Casper FFG already agreed on), then repeatedly apply the GHOST rule using only each validator's latest message to walk down to the current head.</li>
+<li><strong>Why not longest chain:</strong> Longest-chain (Nakamoto) rules are exploitable by anyone who can produce blocks fast in isolation; weight-of-attestations is exploitable only by controlling actual stake, which is exactly the resource the protocol is trying to price.</li>
+</ul>
+
+<div class="diagram">
+<svg viewBox="0 0 780 260" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="390" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">LMD GHOST — picking the head at a fork</text>
+  <!-- justified checkpoint root -->
+  <circle cx="120" cy="130" r="26" fill="#fde68a" stroke="#c99a1f" stroke-width="2"/>
+  <text x="120" y="126" text-anchor="middle" font-size="10" fill="#2b2410">justified</text>
+  <text x="120" y="138" text-anchor="middle" font-size="10" fill="#2b2410">checkpoint</text>
+  <!-- branch A -->
+  <path d="M146 120 L310 70" stroke="#b8860b" stroke-width="2"/>
+  <circle cx="330" cy="64" r="24" fill="#fef3c7" stroke="#eaddaa" stroke-width="2"/>
+  <text x="330" y="68" text-anchor="middle" font-size="10" fill="#2b2410">Block A</text>
+  <path d="M354 60 L520 40" stroke="#b8860b" stroke-width="2"/>
+  <circle cx="540" cy="36" r="24" fill="#fef3c7" stroke="#eaddaa" stroke-width="2"/>
+  <text x="540" y="40" text-anchor="middle" font-size="10" fill="#2b2410">A'</text>
+  <text x="435" y="26" text-anchor="middle" font-size="10.5" fill="#6b5f3e">weight: 11 votes total under subtree</text>
+  <!-- branch B (heavier, wins) -->
+  <path d="M146 140 L310 175" stroke="#2f7a3d" stroke-width="3"/>
+  <circle cx="330" cy="180" r="26" fill="#d4f5d9" stroke="#2f7a3d" stroke-width="2.5"/>
+  <text x="330" y="184" text-anchor="middle" font-size="10" font-weight="700" fill="#1c4d24">Block B</text>
+  <path d="M356 176 L520 150" stroke="#2f7a3d" stroke-width="3"/>
+  <circle cx="540" cy="146" r="24" fill="#d4f5d9" stroke="#2f7a3d" stroke-width="2.5"/>
+  <text x="540" y="150" text-anchor="middle" font-size="10" fill="#1c4d24">B'</text>
+  <path d="M356 190 L520 220" stroke="#2f7a3d" stroke-width="3"/>
+  <circle cx="540" cy="224" r="24" fill="#d4f5d9" stroke="#2f7a3d" stroke-width="2.5"/>
+  <text x="540" y="228" text-anchor="middle" font-size="10" fill="#1c4d24">B''</text>
+  <text x="435" y="205" text-anchor="middle" font-size="10.5" fill="#2f7a3d">weight: 29 votes spread across B subtree</text>
+  <!-- head marker -->
+  <path d="M566 150 L620 150" stroke="#2f7a3d" stroke-width="2" marker-end="url(#ah3)"/>
+  <rect x="622" y="128" width="130" height="44" rx="8" fill="#d4f5d9" stroke="#2f7a3d"/>
+  <text x="687" y="146" text-anchor="middle" font-size="11" font-weight="700" fill="#1c4d24">HEAD</text>
+  <text x="687" y="160" text-anchor="middle" font-size="9.5" fill="#1c4d24">heaviest subtree wins</text>
+  <defs><marker id="ah3" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f7a3d"/></marker></defs>
+</svg>
+<div class="dcap">Fig 9.1 — B has fewer votes on its own tip than A' does on branch A, but more cumulative weight across its whole subtree, so B wins</div>
+</div>
+</section>
+<section id="m10">
+<div class="mod-head"><span class="mod-tag">10</span><h2>Slots &amp; Epochs</h2></div>
+<ul>
+<li><strong>Slot:</strong> 12 seconds on Ethereum, 2 seconds in this XDPoS devnet — the fixed window in which one proposer may publish exactly one block.</li>
+<li><strong>Epoch:</strong> 32 slots (~6.4 min) on Ethereum; 900 blocks (~30 min at 2s blocks) in XDPoS v2. All checkpointing, reward accounting, and (in XDPoS) masternode-set changes happen at epoch boundaries.</li>
+<li><strong>Attestation timing:</strong> Validators attest as soon as they see and validate a block, ideally within the same slot — attestations arriving very late count less toward fork-choice weight.</li>
+<li><strong>Proposer selection:</strong> On Ethereum, pseudo-random per slot, seeded by RANDAO and weighted by effective stake balance. In XDPoS it's deterministic round-robin through the current masternode list (see Part II) — a design choice that trades unpredictability for simplicity and predictable block timing.</li>
+<li><strong>Missed slot:</strong> The assigned proposer failed to publish in time — the slot goes empty and the chain simply continues at the next slot (no block is "owed" later).</li>
+<li><strong>Empty slot:</strong> A slot with no block; attestations for that slot instead vote for the most recent actual block (the "head" carries over).</li>
+</ul>
+
+<div class="diagram">
+<svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="450" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">EPOCH N (Ethereum: 32 slots, ~6.4 min)</text>
+  <rect x="30" y="40" width="840" height="46" rx="6" fill="#fef3c7" stroke="#eaddaa"/>
+  <!-- slots -->
+  <g id="slots">
+    <rect x="40" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+    <rect x="68" y="48" width="24" height="30" fill="#fef9e8" stroke="#eaddaa"/>
+    <rect x="96" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+    <rect x="124" y="48" width="24" height="30" fill="#fef9e8" stroke="#eaddaa"/>
+    <rect x="152" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+    <text x="220" y="68" text-anchor="middle" font-size="11" fill="#6b5f3e">... 32 slots total, one proposer each ...</text>
+    <rect x="700" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+    <rect x="728" y="48" width="24" height="30" fill="#eee" stroke="#c0392b" stroke-dasharray="2,2"/>
+    <rect x="756" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+    <rect x="784" y="48" width="24" height="30" fill="#fde68a" stroke="#c99a1f"/>
+  </g>
+  <text x="740" y="94" text-anchor="middle" font-size="9" fill="#c0392b">missed slot (empty)</text>
+  <rect x="40" y="48" width="24" height="30" fill="none" stroke="#8a5a00" stroke-width="2"/>
+  <text x="52" y="107" text-anchor="middle" font-size="9.5" fill="#6b5f3e">checkpoint</text>
+  <text x="52" y="118" text-anchor="middle" font-size="9.5" fill="#6b5f3e">(1st slot)</text>
+
+  <path d="M64 40 L64 20" stroke="#b8860b" stroke-dasharray="3,3"/>
+  <!-- Casper vote arc -->
+  <path d="M52 130 C 300 190, 600 190, 848 130" stroke="#2f7a3d" stroke-width="2" fill="none" marker-end="url(#ah4)"/>
+  <text x="450" y="180" text-anchor="middle" font-size="11" fill="#2f7a3d">Each validator casts ONE Casper FFG attestation per epoch → source/target checkpoint vote</text>
+  <text x="450" y="20" text-anchor="middle" font-size="1" fill="none"></text>
+  <text x="848" y="115" text-anchor="middle" font-size="9.5" fill="#6b5f3e">epoch N+1</text>
+  <text x="848" y="126" text-anchor="middle" font-size="9.5" fill="#6b5f3e">checkpoint</text>
+  <defs><marker id="ah4" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f7a3d"/></marker></defs>
+</svg>
+<div class="dcap">Fig 10.1 — slots build the chain block-by-block; epochs are the coarser unit Casper FFG actually votes on. XDPoS v2 instead certifies every single block via QC, so it doesn't need this two-tier structure for finality.</div>
+</div>
+</section>
+
+<section id="m11">
+<div class="mod-head"><span class="mod-tag">11</span><h2>Block Proposal Pipeline</h2></div>
+<ol>
+<li><strong>Transaction arrives</strong> at a node's RPC endpoint, gets signature-checked and nonce-checked.</li>
+<li><strong>Mempool:</strong> Valid pending transactions sit here, gossiped to peers, ordered by fee (and, post EIP-1559, by priority fee) until picked up by a proposer.</li>
+<li><strong>Builder (Ethereum only):</strong> Under MEV-Boost, a separate builder market constructs the most profitable possible block body and auctions it to the proposer, who doesn't see the contents — only the bid.</li>
+<li><strong>Proposer:</strong> The validator whose turn it is this slot assembles (or accepts a builder's) execution payload.</li>
+<li><strong>Execution payload:</strong> The EL builds the actual block body — transactions, receipts, resulting state root — and hands it back over the Engine API.</li>
+<li><strong>Beacon block (Ethereum) / signed block (XDPoS):</strong> The CL wraps the execution payload with consensus-layer metadata (attestations, slashings, deposits/exits for Ethereum; the proposer's signature and, in XDPoS v2, the QC it's built on) and signs it.</li>
+<li><strong>Propagation:</strong> Broadcast peer-to-peer via gossip; each receiving node independently re-validates before relaying further (never trust-and-forward blindly).</li>
+<li><strong>Finalization:</strong> Attestations/votes accumulate until the relevant checkpoint (Ethereum) or quorum certificate (XDPoS v2) crosses the 2/3 threshold.</li>
+</ol>
+</section>
+
+<section id="m12">
+<div class="mod-head"><span class="mod-tag">12</span><h2>Attestations</h2></div>
+<ul>
+<li><strong>Attestation:</strong> A validator's signed vote naming a source checkpoint, target checkpoint, and current head — three separate claims bundled into one signed message.</li>
+<li><strong>Committee:</strong> Each epoch's active validator set is split into committees, one per slot, so attestation load is spread evenly rather than all validators voting on every slot.</li>
+<li><strong>Aggregation:</strong> Because BLS signatures support aggregation, an entire committee's individual votes for the same message collapse into a single fixed-size aggregate signature — this is what makes tens of thousands of validators bandwidth-feasible.</li>
+<li><strong>Aggregation bits:</strong> A bitfield alongside the aggregate signature marking exactly which committee members' votes are included (since the aggregate signature itself doesn't reveal who signed).</li>
+<li><strong>Sync committee:</strong> A small (512-validator), frequently-rotated subset whose job is specifically to sign the recent chain head in a lightweight way light clients (wallets, mobile) can verify without downloading full attestation history.</li>
+</ul>
+</section>
+
+<section id="m13">
+<div class="mod-head"><span class="mod-tag">13</span><h2>Rewards</h2></div>
+<ul>
+<li><strong>Base reward:</strong> A function of effective balance and total active stake — proportional to your share, inversely related to how many validators are competing for the same fixed issuance.</li>
+<li><strong>Proposer reward:</strong> An extra cut for successfully including other validators' attestations and sync-committee signatures in your block.</li>
+<li><strong>Attestation reward:</strong> Paid for correctly and promptly voting on source, target, and head — split into sub-rewards per correct component, and reduced the later the attestation arrives.</li>
+<li><strong>MEV / priority fee:</strong> Under EIP-1559, users pay a base fee (burned — removed from supply) plus an optional priority fee (tip) that goes entirely to the proposer, on top of any MEV a builder extracted from transaction ordering.</li>
+<li><strong>Issuance:</strong> New tokens minted specifically to pay base/attestation rewards — separate from any transaction fee revenue.</li>
+<li><strong>APR calculation:</strong> Roughly <code>annual issuance to validators ÷ total effective stake</code> — this is why APR drops as more people stake: the same issuance pool is split more ways.</li>
+</ul>
+</section>
+
+<section id="m14">
+<div class="mod-head"><span class="mod-tag">14</span><h2>Slashing</h2></div>
+<p class="lead">Slashing is the mechanism that makes PoS's honest-majority assumption <em>economically</em> enforced, not just hoped for — provable misbehavior destroys stake, not just reputation.</p>
+<ul>
+<li><strong>Double proposal:</strong> Signing two different blocks for the same slot — cryptographically provable (both signed messages exist) and automatically slashable.</li>
+<li><strong>Double vote:</strong> Attesting to two different target checkpoints for the same source/epoch — a direct attempt to help two conflicting forks both reach justification.</li>
+<li><strong>Surround vote:</strong> A more subtle attack — casting a new attestation whose source/target range fully encloses (or is enclosed by) an earlier attestation you made, which could otherwise help finalize two incompatible histories over time.</li>
+<li><strong>Penalty vs. slashing:</strong> A regular penalty (e.g., for being offline and missing attestations) just forfeits reward you would have earned. Slashing actively burns a portion of your existing staked balance and force-exits you.</li>
+<li><strong>Correlation penalty:</strong> The slashed amount scales with how many <em>other</em> validators are slashed in the same time window — a lone honest mistake costs little; a coordinated attack by many validators at once costs catastrophically more, specifically to deter cartel-style attacks.</li>
+<li><strong>Slashing protection:</strong> Local database validator clients keep to refuse ever re-signing something that could constitute a slashable double-sign, even after a crash/restart — critical when migrating a validator between machines.</li>
+<li><strong>Inactivity leak:</strong> If the chain goes more than ~4 epochs without finalizing (e.g., mass outage), offline validators start losing stake at an accelerating rate until the online minority's relative share crosses back above 2/3 — a self-healing mechanism to restore finality without a hard fork.</li>
+</ul>
+</section>
+
+<section id="m15">
+<div class="mod-head"><span class="mod-tag">15</span><h2>Security — Attack Classes</h2></div>
+<ul>
+<li><strong>51%/majority attack:</strong> Controlling enough stake (or hash power in PoW) to dictate the canonical chain — in BFT-style PoS this specifically means &gt;1/3 to break liveness, or &gt;2/3 to break safety.</li>
+<li><strong>Nothing-at-stake:</strong> An early theoretical PoS flaw — since voting is nearly free, why not vote on every competing fork to guarantee you're rewarded whichever wins? Slashing for double-voting is the direct fix.</li>
+<li><strong>Long-range attack:</strong> An attacker acquires old (no-longer-staked) validator keys and rewrites history from far in the past, since old keys have nothing left to lose. Countered by weak subjectivity checkpoints — clients trust a recent, socially-agreed checkpoint rather than validating from genesis blindly.</li>
+<li><strong>Sybil attack:</strong> Creating many fake identities to gain disproportionate influence — neutralized in PoS because influence is priced in stake, not identity count.</li>
+<li><strong>Replay attack:</strong> Rebroadcasting a valid signed transaction/message from one context (chain, epoch) in another where it would also validate — prevented with chain IDs and domain-separated signatures.</li>
+<li><strong>Equivocation:</strong> The general term for signing conflicting messages (covers double proposal and double vote) — always slashable by design.</li>
+<li><strong>Stake grinding:</strong> Trying to bias the randomness source that selects future proposers/committees in your favor — mitigated by using unbiasable randomness (RANDAO + VDF research, or verifiable randomness in general).</li>
+<li><strong>Censorship:</strong> A proposer/committee excludes specific valid transactions — mitigated by proposer-builder separation and inclusion lists research, though it's an open problem area.</li>
+<li><strong>Validator collusion:</strong> Coordinated cartels acting together — correlation penalties specifically punish this harder than independent honest mistakes.</li>
+<li><strong>MEV / time-bandit attacks:</strong> Reorganizing recent blocks specifically to capture a lucrative MEV opportunity that appeared — mitigated by making reorgs progressively more expensive the deeper they'd need to go.</li>
+<li><strong>DoS:</strong> Flooding a node/network with junk traffic to degrade liveness — mitigated with peer scoring, rate limiting, and requiring proof-of-stake-weighted priority for gossip.</li>
+</ul>
+</section>
+<section id="m16">
+<div class="mod-head"><span class="mod-tag">16</span><h2>Gas System</h2></div>
+<p class="lead">Gas is the EVM's way of pricing computation so infinite loops can't stall the network for free — every opcode costs a fixed amount of gas, and a transaction dies (reverting all state changes except nonce/fee deduction) if it runs out.</p>
+<ul>
+<li><strong>Gas units:</strong> An abstract cost unit — 1 gas is not 1 wei; it's a fixed "amount of work," priced separately.</li>
+<li><strong>Gas price / gas price bidding (pre-1559):</strong> How many wei you pay per gas unit — historically a first-price auction, which caused unpredictable fee spikes.</li>
+<li><strong>Gas limit (per tx):</strong> The maximum gas the sender authorizes this transaction to consume — protects the sender from an unbounded bill if something loops unexpectedly.</li>
+<li><strong>Block gas limit:</strong> The total gas cap for all transactions in one block — this is the real throughput bottleneck of the EVM, not block size in bytes.</li>
+<li><strong>Base fee (EIP-1559):</strong> An algorithmically-adjusted, per-block fee that's <em>burned</em> — rises when the previous block was over the target gas usage, falls when under, targeting 50% block fullness on average.</li>
+<li><strong>Priority fee (tip):</strong> On top of the base fee, paid directly to the proposer as an incentive to include your transaction promptly or preferentially.</li>
+<li><strong>Max fee:</strong> The absolute cap you're willing to pay per gas (base + priority combined); if base fee alone exceeds it, your transaction simply won't be included yet.</li>
+<li><strong>Fee burning:</strong> The base fee is destroyed, not paid to anyone — this makes ETH's supply deflationary during periods of high usage, unlike the old flat fee-to-miner model.</li>
+<li><strong>Gas estimation:</strong> Wallets simulate a transaction against current state to predict its gas cost before you sign, since gas usage depends on the exact code path taken (branches, storage slots touched).</li>
+<li><strong>Out of gas:</strong> Execution halts mid-way, all state changes revert, but the gas already consumed is still charged (this is what stops spam — failed attacks still cost the attacker).</li>
+<li><strong>Refunds:</strong> A small gas rebate for certain state-clearing operations (e.g., setting a storage slot back to zero) — capped to prevent gas-refund gaming exploits seen historically.</li>
+<li><strong>Intrinsic gas:</strong> The flat baseline cost every transaction pays just for existing (21000 gas on Ethereum) plus per-byte calldata costs, before any opcode even runs.</li>
+<li><strong>Opcode / storage / memory gas:</strong> Different resource classes are priced very differently — a simple arithmetic opcode costs a few gas; a fresh <code>SSTORE</code> (writing to a previously-empty storage slot) costs thousands, because permanent state growth is the scarcest, most expensive resource in the system (every full node must store it forever).</li>
+</ul>
+</section>
+
+<section id="m17">
+<div class="mod-head"><span class="mod-tag">17</span><h2>Transactions</h2></div>
+<ul>
+<li><strong>Transaction structure:</strong> nonce, gas price/fee fields, gas limit, to-address (or empty for contract creation), value, data (calldata or init code), chain ID, and a signature (v, r, s).</li>
+<li><strong>Nonce:</strong> A strictly increasing per-account counter — the primary defense against replaying or reordering a sender's own transactions.</li>
+<li><strong>Signature:</strong> ECDSA over secp256k1 in Ethereum-family chains; proves the sender authorized exactly this transaction content.</li>
+<li><strong>Chain ID:</strong> Embedded in the signed payload (EIP-155) specifically so a transaction valid on one network can't be replayed on another (e.g., mainnet vs. a private XDPoS devnet sharing similar tooling).</li>
+<li><strong>RLP encoding:</strong> Recursive Length Prefix — the compact binary serialization format Ethereum-family chains use for transactions, blocks, and the state/receipt tries, chosen for being simple and unambiguous to decode.</li>
+<li><strong>Transaction hash:</strong> Keccak256 of the RLP-encoded signed transaction — the canonical unique ID you look up in an explorer.</li>
+<li><strong>Receipt:</strong> Post-execution record — status (success/revert), gas used, logs emitted, and a bloom filter — stored separately from the transaction itself.</li>
+<li><strong>Logs / events:</strong> Arbitrary data a contract emits during execution (via <code>LOG</code> opcodes / Solidity's <code>event</code>) — the primary way off-chain applications know something happened on-chain without re-simulating every transaction.</li>
+<li><strong>Bloom filter:</strong> A probabilistic per-block/per-receipt data structure letting a light client quickly check "could this block contain a log matching X topic" without downloading and scanning every log.</li>
+</ul>
+</section>
+
+<section id="m18">
+<div class="mod-head"><span class="mod-tag">18</span><h2>Cryptography a Developer Must Know</h2></div>
+<ul>
+<li><strong>SHA-256:</strong> Used by Bitcoin's PoW and various signature schemes — a 256-bit general-purpose cryptographic hash.</li>
+<li><strong>Keccak256:</strong> The hash function Ethereum-family chains use everywhere — addresses, storage slots, transaction/state hashing (note: this predates and differs slightly from the later standardized SHA-3).</li>
+<li><strong>ECDSA:</strong> Elliptic Curve Digital Signature Algorithm over secp256k1 — the signature scheme securing Ethereum-family accounts and transactions; not aggregatable, which is exactly why BLS was introduced for validator-scale voting.</li>
+<li><strong>BLS signatures:</strong> A pairing-based scheme whose signatures <em>can</em> be aggregated into one fixed-size signature regardless of how many signers — the enabling technology behind Ethereum's efficient committee attestations.</li>
+<li><strong>Merkle tree:</strong> A binary tree of hashes where each parent is the hash of its children — lets you prove a single leaf belongs to a huge dataset with only <code>log(n)</code> hashes (a Merkle proof), without revealing the rest.</li>
+<li><strong>Patricia trie (Merkle Patricia Trie):</strong> Ethereum's actual state data structure — a radix trie (efficient key lookups by shared prefixes) combined with Merkle hashing (so the whole state has one verifiable root hash: <code>stateRoot</code>).</li>
+<li><strong>Verkle tree:</strong> A proposed successor using vector commitments instead of plain hashing, producing dramatically smaller proofs — part of Ethereum's roadmap to enable stateless clients.</li>
+<li><strong>Public/private key + address generation:</strong> A private key (random 256-bit number) derives a public key via elliptic-curve multiplication; the address is the last 20 bytes of Keccak256(public key) — one-way at every step, so an address never reveals the key that controls it.</li>
+</ul>
+</section>
+
+<section id="m19">
+<div class="mod-head"><span class="mod-tag">19</span><h2>Networking</h2></div>
+<ul>
+<li><strong>DevP2P:</strong> Ethereum-family chains' peer-to-peer networking stack — RLPx encrypted transport plus subprotocols (<code>eth</code>, and in XDPoS's case, an added <code>XDPoS</code> subprotocol for consensus messages).</li>
+<li><strong>Gossip protocol:</strong> New blocks/transactions/votes propagate by each node forwarding to a subset of its peers, who forward to theirs — no central broadcaster, and the network self-heals around outages.</li>
+<li><strong>Peer discovery / ENR:</strong> Nodes advertise an Ethereum Node Record (a signed, extensible record of IP, ports, and capabilities) so peers can find and validate each other without a central directory.</li>
+<li><strong>Bootnodes:</strong> Well-known, stable nodes whose only job is answering "who else is on this network" for new nodes joining — they hold no chain state and take no part in consensus (see Part IV).</li>
+<li><strong>JSON-RPC / HTTP-RPC / WebSocket:</strong> The standard client-facing API — HTTP for request/response calls, WebSocket for subscriptions (new blocks, pending transactions, logs) that push updates instead of polling.</li>
+<li><strong>Engine API:</strong> The CL↔EL local API described in Module 5 — conceptually a specialized, authenticated JSON-RPC namespace, not a public-facing one.</li>
+</ul>
+</section>
+
+<section id="m20">
+<div class="mod-head"><span class="mod-tag">20</span><h2>Execution Layer / EVM</h2></div>
+<ul>
+<li><strong>EVM:</strong> A stack-based, 256-bit-word virtual machine every full node runs identically — determinism here is what lets thousands of independent nodes agree on the exact same resulting state.</li>
+<li><strong>Stack / memory / storage:</strong> Three separate data areas with very different costs — stack is cheap and ephemeral (per-call), memory is cheap-ish and ephemeral (per-call, grows quadratically in cost), storage is expensive and permanent (per-contract, persists on-chain forever).</li>
+<li><strong>Calldata:</strong> The read-only input data attached to a call — cheaper than memory to reference, and the primary way arguments reach a contract function.</li>
+<li><strong>ABI (Application Binary Interface):</strong> The encoding spec that turns a function call like <code>transfer(address,uint256)</code> into the raw bytes a contract's fallback dispatch logic recognizes (first 4 bytes = function selector).</li>
+<li><strong>Bytecode:</strong> The actual compiled opcodes stored at a contract's address and executed by the EVM — Solidity/Vyper source never runs directly, only this.</li>
+<li><strong>Contract creation:</strong> A transaction with an empty <code>to</code> field and "init code" as data — the EVM runs the init code once, and whatever it returns becomes the permanently-stored contract bytecode at the newly-derived address.</li>
+<li><strong>DELEGATECALL:</strong> Executes another contract's code <em>in the caller's own storage/context</em> — the foundation of upgradeable proxy patterns, and also a classic exploit vector if misused (a malicious "implementation" can rewrite the proxy's storage arbitrarily).</li>
+<li><strong>STATICCALL:</strong> Like a regular call but enforces read-only — any attempted state change inside it reverts the whole call, used to safely call untrusted code for view-only data.</li>
+<li><strong>CREATE2:</strong> Deploys a contract at an address computable in advance from (deployer, salt, init-code hash) rather than depending on the deployer's nonce — enables counterfactual deployment (an address can receive funds before the contract exists there).</li>
+</ul>
+</section>
+
+<section id="m21">
+<div class="mod-head"><span class="mod-tag">21</span><h2>Smart Contracts</h2></div>
+<ul>
+<li><strong>Solidity:</strong> The dominant contract language — statically typed, compiles to EVM bytecode.</li>
+<li><strong>Inheritance / interfaces / libraries:</strong> Solidity supports OOP-style multiple inheritance (resolved via C3 linearization), interfaces for external-call type safety, and libraries for reusable, often <code>delegatecall</code>-embedded logic.</li>
+<li><strong>Modifiers:</strong> Reusable pre/post-condition wrappers on functions (e.g., <code>onlyOwner</code>) — sugar for common require-then-execute patterns.</li>
+<li><strong>Mappings / storage / memory keywords:</strong> Mappings are hash-table-like but only ever live in storage; the <code>storage</code>/<code>memory</code>/<code>calldata</code> keywords on reference types control whether a variable is a persistent pointer or a temporary copy — getting this wrong is a classic bug source.</li>
+<li><strong>Events:</strong> Declared with <code>event</code>, emitted with <code>emit</code> — compiled down to <code>LOG</code> opcodes, cheaper than storage specifically because logs aren't part of contract-readable state, only externally observable.</li>
+<li><strong>Assembly (Yul/inline):</strong> Direct low-level EVM opcode access from within Solidity, used when gas optimization or an operation Solidity doesn't expose natively is required.</li>
+<li><strong>Fallback / receive:</strong> <code>receive()</code> handles plain ETH transfers with empty calldata; <code>fallback()</code> handles calls that don't match any function selector (or any ETH transfer if <code>receive</code> is absent) — both are entry points attackers specifically probe.</li>
+<li><strong>Proxy / upgradeable contracts:</strong> Separates a stable proxy address (that users/contracts interact with) from swappable logic contracts via <code>DELEGATECALL</code>, so contract logic can be upgraded without changing the address or migrating storage.</li>
+<li><strong>Diamond pattern (EIP-2535):</strong> A proxy pattern that routes to <em>many</em> logic contracts ("facets") by function selector instead of just one, working around the 24KB contract size limit for very large systems.</li>
+</ul>
+</section>
+
+<section id="m22">
+<div class="mod-head"><span class="mod-tag">22</span><h2>Token Standards</h2></div>
+<table>
+<tr><th>Standard</th><th>What it defines</th></tr>
+<tr><td>ERC-20</td><td>Fungible tokens — <code>transfer</code>, <code>approve</code>, <code>balanceOf</code>. The base of nearly all DeFi.</td></tr>
+<tr><td>ERC-721</td><td>Non-fungible tokens (NFTs) — every token ID is unique and individually owned.</td></tr>
+<tr><td>ERC-1155</td><td>Multi-token standard — fungible and non-fungible token types in one contract, batched transfers.</td></tr>
+<tr><td>ERC-777</td><td>An ERC-20 extension adding hooks (send/receive callbacks) — largely superseded due to reentrancy risk from those same hooks.</td></tr>
+<tr><td>ERC-4626</td><td>Tokenized vault standard — a common interface for yield-bearing vault shares (deposit/withdraw/convert-to-shares).</td></tr>
+<tr><td>ERC-4337</td><td>Account abstraction without a protocol change — "UserOperations" processed by bundlers, enabling smart-contract wallets with custom validation logic.</td></tr>
+<tr><td>ERC-2981</td><td>NFT royalty standard — a standard way for marketplaces to query a creator royalty percentage.</td></tr>
+</table>
+</section>
+<section id="m23">
+<div class="mod-head"><span class="mod-tag">23</span><h2>DeFi</h2></div>
+<ul>
+<li><strong>AMM (Automated Market Maker):</strong> Replaces an order book with a pricing formula (classically <code>x*y=k</code>) against a pooled reserve — anyone can trade against the pool at a price the formula sets, no counterparty matching needed.</li>
+<li><strong>DEX:</strong> A decentralized exchange built on an AMM (or on-chain order book) — trades settle directly via smart contract, no custodial intermediary.</li>
+<li><strong>Liquidity pool:</strong> The pooled reserve of two (or more) assets that an AMM trades against; depositors ("liquidity providers") earn a cut of trading fees.</li>
+<li><strong>Yield farming:</strong> Chasing the highest combined return across lending interest, trading fees, and bonus token incentives by moving capital between protocols.</li>
+<li><strong>Lending/borrowing:</strong> Overcollateralized loans against crypto assets (Aave, Compound-style) — no credit check possible on-chain, so the loan-to-value ratio and liquidation mechanism substitute for underwriting.</li>
+<li><strong>Flash loans:</strong> Borrow any amount with zero collateral, provided it's borrowed and repaid within the same transaction — if repayment (plus fee) fails, the entire transaction reverts as if it never happened, making default cryptographically impossible.</li>
+<li><strong>Impermanent loss:</strong> The value an LP loses (relative to just holding the two assets) when the pool's price ratio moves away from the ratio at deposit time — "impermanent" because it only becomes a realized loss if you withdraw while the prices are still diverged.</li>
+<li><strong>Stablecoins:</strong> Tokens pegged to an external value (usually USD) via fiat-backed reserves (USDC), over-collateralized crypto debt (DAI), or algorithmic mechanisms (historically fragile, see Terra/UST's 2022 collapse).</li>
+<li><strong>Oracles:</strong> The bridge that feeds real-world data (prices, in most DeFi cases) on-chain — a frequent attack surface, since manipulating the oracle can be cheaper than manipulating the actual market.</li>
+</ul>
+</section>
+
+<section id="m24">
+<div class="mod-head"><span class="mod-tag">24</span><h2>Layer 2</h2></div>
+<ul>
+<li><strong>Rollups:</strong> Execute transactions off the main chain (L1) but post compressed transaction data (and a state commitment) back to L1, inheriting L1's security for data availability while scaling throughput.</li>
+<li><strong>Optimistic rollups:</strong> Assume state transitions are valid by default; anyone can submit a fraud proof during a challenge window (often ~7 days) to revert an invalid one. Examples: Arbitrum, Optimism, Base.</li>
+<li><strong>ZK rollups:</strong> Post a cryptographic validity proof (zk-SNARK/STARK) alongside every batch, proving correctness immediately — no challenge window needed, but proof generation is computationally heavier. Examples: zkSync, Starknet.</li>
+<li><strong>State channels:</strong> Two or more parties transact off-chain, only settling the final net state on-chain — fast and cheap, but limited to interactions among a fixed, known set of participants.</li>
+<li><strong>Plasma:</strong> An earlier scaling design using child chains anchored to L1 via periodic Merkle root commitments — largely superseded by rollups due to data-availability weaknesses.</li>
+</ul>
+</section>
+
+<section id="m25">
+<div class="mod-head"><span class="mod-tag">25</span><h2>Developer Stack</h2></div>
+<table>
+<tr><th>Category</th><th>Tools</th></tr>
+<tr><td>Languages</td><td>Solidity, Rust, Go, JavaScript/TypeScript</td></tr>
+<tr><td>Libraries</td><td>ethers.js, viem, web3.js</td></tr>
+<tr><td>Frameworks</td><td>Hardhat, Foundry, Brownie</td></tr>
+<tr><td>Wallets</td><td>MetaMask, WalletConnect-compatible wallets</td></tr>
+<tr><td>Testing</td><td>Forge (Foundry's fast Solidity-native tester), Chai/Mocha (JS-side)</td></tr>
+<tr><td>Deployment</td><td>Remix (browser IDE), Hardhat/Foundry scripts</td></tr>
+</table>
+</section>
+
+<section id="m26">
+<div class="mod-head"><span class="mod-tag">26</span><h2>Node Development</h2></div>
+<p class="lead">This is the module that directly maps onto what XDPoSChain's source tree actually contains. If you're building a chain (or reading someone else's client code), these are the subsystems you'll find every time:</p>
+<ul>
+<li><strong>Consensus engine:</strong> Implements the pluggable interface (propose/verify/seal) — this is where XDPoS's round-robin + BFT logic lives in the fork.</li>
+<li><strong>Networking:</strong> Peer discovery, gossip, subprotocol handshakes (Module 19).</li>
+<li><strong>Storage:</strong> A key-value backend (LevelDB/Pebble) underneath the state trie, block index, and receipts.</li>
+<li><strong>Mempool:</strong> Validates and orders pending transactions before a proposer picks from it.</li>
+<li><strong>Validator logic:</strong> Signing, vote/QC collection, penalty tracking.</li>
+<li><strong>RPC server:</strong> Exposes JSON-RPC/WS endpoints for wallets, explorers, dApps.</li>
+<li><strong>State transition function:</strong> Applies a block's transactions to prior state to produce new state — must be bit-for-bit deterministic across every node.</li>
+<li><strong>Fork choice:</strong> Decides canonical head when competing chains exist.</li>
+<li><strong>State trie:</strong> The Merkle Patricia structure holding every account's balance/nonce/code/storage.</li>
+<li><strong>Execution engine:</strong> The EVM interpreter itself.</li>
+</ul>
+</section>
+
+<section id="m27">
+<div class="mod-head"><span class="mod-tag">27</span><h2>Blockchain Security (Auditing)</h2></div>
+<ul>
+<li><strong>Smart contract auditing:</strong> Combines manual line-by-line review, automated static/dynamic analysis, and often formal verification for high-value contracts.</li>
+<li><strong>Reentrancy:</strong> A contract makes an external call before updating its own state, letting the callee re-enter and drain funds using stale state — the exploit behind The DAO hack (2016).</li>
+<li><strong>Flash loan attacks:</strong> Use flash-loaned capital to temporarily manipulate a price/oracle within one transaction, profit, and repay — see Module 23.</li>
+<li><strong>Delegatecall risk:</strong> A malicious or buggy "implementation" contract can overwrite the proxy's own storage slots, since delegatecall executes in the caller's storage context.</li>
+<li><strong>Integer overflow/underflow:</strong> Largely closed off by default in Solidity ≥0.8 (reverts automatically), still relevant in older code or explicit <code>unchecked</code> blocks.</li>
+<li><strong>Oracle attacks:</strong> Manipulating or front-running the price feed a contract trusts.</li>
+<li><strong>Formal verification:</strong> Mathematically proving a contract satisfies a specification, rather than just testing example cases.</li>
+<li><strong>Tooling:</strong> Slither (fast static analysis), Mythril (symbolic execution), Echidna (property-based fuzzing), Foundry's built-in fuzzing/invariant testing.</li>
+</ul>
+</section>
+
+<section id="m28">
+<div class="mod-head"><span class="mod-tag">28</span><h2>Real Production Systems</h2></div>
+<table>
+<tr><th>System</th><th>Consensus</th><th>Notes</th></tr>
+<tr><td>Ethereum</td><td>Casper FFG + LMD GHOST</td><td>Split EL/CL architecture, largest validator set in production</td></tr>
+<tr><td>Cosmos SDK</td><td>Tendermint BFT</td><td>App-chain framework; instant, deterministic finality</td></tr>
+<tr><td>Avalanche</td><td>Avalanche consensus</td><td>Repeated random subsampling instead of full quorum voting</td></tr>
+<tr><td>Solana</td><td>Proof of History + PoS</td><td>A verifiable clock (PoH) lets leaders order transactions without waiting on network round-trips</td></tr>
+<tr><td>Polkadot</td><td>Nominated PoS + GRANDPA</td><td>Shared security across parachains via a relay chain</td></tr>
+<tr><td>Hyperledger Fabric</td><td>Pluggable (often Raft, crash-fault-tolerant only)</td><td>Permissioned enterprise chain, no public token</td></tr>
+<tr><td>Sui / Aptos</td><td>Narwhal/Bullshark BFT; Move-based BFT</td><td>Parallel transaction execution, object-centric data model</td></tr>
+<tr><td><strong>XDPoS (XinFin)</strong></td><td>Round-robin proposer + BFT quorum certificates (v2)</td><td>Permissioned masternode set, single-binary EL+CL — see Part II</td></tr>
+</table>
+</section>
+
+<section id="m29">
+<div class="mod-head"><span class="mod-tag">29</span><h2>Building Your Own PoS Blockchain — The Checklist</h2></div>
+<p class="lead">Every item below is something XDPoSChain (and the pvt-xdpos devnet built on top of it) has already made a concrete decision about — Parts II–VI trace exactly which choice was made and why.</p>
+<ol>
+<li>Design the blockchain data structure (header, body, transactions).</li>
+<li>Create blocks — timestamp, parent hash, state root, extraData.</li>
+<li>Implement wallets and key management (ECDSA and/or BLS).</li>
+<li>Build the transaction pool (mempool) with validation and fee ordering.</li>
+<li>Implement validator registration and staking.</li>
+<li>Choose a proposer-selection method — random (VRF/RANDAO) vs. deterministic round-robin.</li>
+<li>Implement block proposal and propagation.</li>
+<li>Implement validator voting/attestations.</li>
+<li>Implement a finality mechanism — Casper-style checkpoints vs. per-block BFT quorum certificates.</li>
+<li>Distribute rewards and penalties.</li>
+<li>Implement slashing logic.</li>
+<li>Choose a state storage structure (Merkle Patricia Trie is the standard).</li>
+<li>Add peer-to-peer networking (discovery + gossip).</li>
+<li>Add RPC/REST APIs.</li>
+<li>Integrate wallets and a block explorer.</li>
+<li>Design governance and protocol-upgrade mechanisms.</li>
+</ol>
+</section>
+<div class="part-divider" id="part2">
+  <div class="part-eyebrow">Part II</div>
+  <h1>How XDC and XDPoS actually work</h1>
+  <p>Every term from Part I now gets mapped onto a real, running, permissioned chain. XDPoS is a fork of go-ethereum, so most of the EVM/transaction/networking machinery from Part I applies unchanged — the entire divergence is concentrated in the consensus engine.</p>
+</div>
+
+<section id="xdc-what">
+<h2>What is XDC?</h2>
+<p>XDC is the native token of the XinFin Network, a chain positioned for enterprise trade-finance and cross-border payment use cases — fast (2-second blocks), cheap, and with deterministic finality rather than PoW-style probabilistic settlement. Architecturally it's an EVM-compatible chain (so ordinary Solidity contracts, ERC-20/721 tokens, and standard tooling like MetaMask/ethers.js/Hardhat all work against it, per Part I Modules 20–25), but its consensus engine is not Ethereum's — it's XinFin's own, called XDPoS.</p>
+</section>
+
+<section id="xdpos-what">
+<h2>What is XDPoS?</h2>
+<p>XDPoS — <strong>XinFin Delegated Proof of Stake</strong> — is a consensus engine forked from go-ethereum's pluggable <code>consensus.Engine</code> interface (the same extension point go-ethereum used for its old Clique proof-of-authority engine). Instead of implementing PoW's <code>Seal()</code>/<code>VerifySeal()</code> logic, XDPoS implements a masternode round-robin proposer schedule with BFT-style voting layered on top. The "Delegated" part refers to how the validator set is chosen: coin holders vote (by staking XDC toward a candidate) for a fixed number of masternode operators, rather than every staker running their own validator the way Ethereum's permissionless model works.</p>
+<p>Four properties define it in practice:</p>
+<ul>
+<li><strong>Fast, fixed block time</strong> — 2 seconds, because the proposer schedule is deterministic (no PoW-style race, no random-selection latency).</li>
+<li><strong>Epoch-based masternode rotation</strong> — the active masternode list is re-evaluated every epoch (900 blocks) based on current stake-weighted votes.</li>
+<li><strong>BFT-style finality (v2)</strong> — blocks are finalized by an explicit 2/3+ quorum certificate, not by waiting N confirmations and hoping.</li>
+<li><strong>Permissioned validator set</strong> — unlike Ethereum where anyone with 32 ETH can become a validator, only addresses elected into the masternode list (or, on a private network, hardcoded in genesis) may propose/sign blocks.</li>
+</ul>
+</section>
+
+<section id="xdpos-v1">
+<h2>XDPoS v1 — how the original design worked</h2>
+<p>v1 is architecturally closer to Clique proof-of-authority than to a textbook BFT protocol. Masternodes take turns proposing blocks in a deterministic round-robin order derived from the sorted masternode list. Each block's <code>extraData</code> field is signed by the proposer, and every other masternode is expected to also sign ("second-sign") recent blocks as they pass — enough matching signatures within a window act as an informal, checkpoint-based confirmation rather than an explicit single-round quorum vote. Finality under v1 is closer to Nakamoto-style — a block gets safer the deeper it is and the more subsequent masternode signatures accumulate on top of it — rather than the instant, provable finality BFT protocols give (Part I, Module 6). This is why v2 exists: v1 gives you fast, cheap blocks, but not the hard safety guarantee an enterprise settlement use case wants.</p>
+<h4>Epoch mechanics common to both versions</h4>
+<ul>
+<li><strong>Epoch = 900 blocks</strong> (~30 minutes at 2s blocks) — the boundary where the masternode list is recomputed from current votes.</li>
+<li><strong>Gap = 450 blocks</strong> — the masternode list for the <em>next</em> epoch is actually snapshotted <code>gap</code> blocks <em>before</em> the epoch boundary, not exactly at it. This exists so every masternode has a known, stable set to prepare for in advance — if the list were only known the instant the new epoch started, there'd be no time to safely hand off proposer duty without risking a stalled slot.</li>
+<li><strong>Reward checkpoint = 900 blocks</strong> — masternode rewards (10 XDC in the private devnet's genesis) are distributed once per epoch, not per block, keeping reward accounting cheap.</li>
+</ul>
+</section>
+
+<section id="xdpos-v2">
+<h2>XDPoS v2 — the BFT redesign</h2>
+<p>v2 (introduced as a live network upgrade, activated at a configured <code>v2 switch block</code> in genesis/chain config — <code>0</code> means "BFT from genesis," which is how the private devnet is configured) replaces the informal second-signing scheme with an explicit, pipelined BFT protocol modeled on the same family as HotStuff/Tendermint: proposal → vote → quorum certificate → commit.</p>
+<h4>The v2 round, step by step</h4>
+<ol>
+<li><strong>Round starts:</strong> The masternode whose turn it is (round-robin over the current masternode list) is the leader for this round.</li>
+<li><strong>Propose:</strong> The leader builds a block extending the highest quorum-certified (QC'd) block it knows about, and broadcasts it.</li>
+<li><strong>Vote:</strong> Every other masternode validates the block and, if valid, signs and broadcasts a vote for it.</li>
+<li><strong>Quorum Certificate (QC):</strong> Once votes from masternodes controlling ≥<code>certThreshold</code> (0.667, i.e. 2/3) of the masternode set are collected for that block, they're combined into a QC — a compact, verifiable proof that 2/3+ of the network agreed.</li>
+<li><strong>Commit:</strong> Because each new block embeds the QC of its parent, once a block's <em>child</em> also reaches a QC, the parent is considered committed/finalized — the same two-hop finalization logic as Casper FFG (Part I, Module 8), just applied per-block instead of per-epoch-checkpoint. This is why XDPoS v2 finality is measured in seconds, not minutes.</li>
+<li><strong>Timeout path:</strong> If the leader fails to propose in time (offline, network partition), masternodes instead broadcast signed timeout messages. Once ≥2/3 of masternodes agree the round timed out, a Timeout Certificate (TC) is formed, the round advances, and the next masternode in the schedule becomes leader — this is the liveness fallback so one bad leader can't stall the chain indefinitely.</li>
+</ol>
+
+<div class="diagram">
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="450" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">XDPoS v2 — one BFT round, block N</text>
+
+  <rect x="20" y="45" width="150" height="60" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="95" y="70" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2b2410">Leader proposes</text>
+  <text x="95" y="86" text-anchor="middle" font-size="10" fill="#6b5f3e">extends parent's QC</text>
+  <path d="M170 75 L215 75" stroke="#b8860b" stroke-width="2" marker-end="url(#ah5)"/>
+
+  <rect x="217" y="45" width="150" height="60" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="292" y="70" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2b2410">Masternodes vote</text>
+  <text x="292" y="86" text-anchor="middle" font-size="10" fill="#6b5f3e">validate + sign</text>
+  <path d="M367 75 L412 75" stroke="#b8860b" stroke-width="2" marker-end="url(#ah5)"/>
+
+  <rect x="414" y="45" width="160" height="60" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="494" y="66" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2b2410">Quorum Certificate</text>
+  <text x="494" y="82" text-anchor="middle" font-size="10" fill="#6b5f3e">≥2/3 votes combined</text>
+  <text x="494" y="95" text-anchor="middle" font-size="10" fill="#6b5f3e">(certThreshold 0.667)</text>
+  <path d="M574 75 L619 75" stroke="#b8860b" stroke-width="2" marker-end="url(#ah5)"/>
+
+  <rect x="621" y="45" width="150" height="60" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="696" y="70" text-anchor="middle" font-size="11.5" font-weight="700" fill="#2b2410">Block N+1 proposed</text>
+  <text x="696" y="86" text-anchor="middle" font-size="10" fill="#6b5f3e">embeds N's QC</text>
+  <path d="M771 75 L816 75" stroke="#2f7a3d" stroke-width="2.5" marker-end="url(#ah6)"/>
+
+  <rect x="818" y="45" width="65" height="60" rx="8" fill="#d4f5d9" stroke="#2f7a3d" stroke-width="2"/>
+  <text x="850" y="70" text-anchor="middle" font-size="11" font-weight="700" fill="#1c4d24">N</text>
+  <text x="850" y="84" text-anchor="middle" font-size="9.5" fill="#1c4d24">final</text>
+  <text x="450" y="130" text-anchor="middle" font-size="11" fill="#2f7a3d">Two-hop commit rule: block N is finalized the instant its CHILD (N+1) also gets a QC — seconds, not epochs.</text>
+
+  <!-- timeout fallback path -->
+  <rect x="20" y="170" width="300" height="56" rx="8" fill="#fde2de" stroke="#c0392b"/>
+  <text x="170" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="#7a2318">Leader silent / offline</text>
+  <text x="170" y="208" text-anchor="middle" font-size="10" fill="#7a2318">no proposal within timeoutPeriod</text>
+  <path d="M320 198 L365 198" stroke="#c0392b" stroke-width="2" marker-end="url(#ah7)"/>
+  <rect x="367" y="170" width="260" height="56" rx="8" fill="#fde2de" stroke="#c0392b"/>
+  <text x="497" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="#7a2318">≥2/3 timeout votes → TC</text>
+  <text x="497" y="208" text-anchor="middle" font-size="10" fill="#7a2318">Timeout Certificate formed</text>
+  <path d="M627 198 L672 198" stroke="#c0392b" stroke-width="2" marker-end="url(#ah7)"/>
+  <rect x="674" y="170" width="205" height="56" rx="8" fill="#fde2de" stroke="#c0392b"/>
+  <text x="776" y="192" text-anchor="middle" font-size="11" font-weight="700" fill="#7a2318">Round advances</text>
+  <text x="776" y="208" text-anchor="middle" font-size="10" fill="#7a2318">next masternode leads</text>
+
+  <text x="450" y="260" text-anchor="middle" font-size="10.5" fill="#6b5f3e">This is the liveness fallback — a single stuck or malicious leader can never stall the chain past one timeout window.</text>
+
+  <defs>
+    <marker id="ah5" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b8860b"/></marker>
+    <marker id="ah6" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f7a3d"/></marker>
+    <marker id="ah7" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#c0392b"/></marker>
+  </defs>
+</svg>
+<div class="dcap">Fig xdpos-v2.1 — the happy path (top) vs. the timeout/leader-change fallback (bottom)</div>
+</div>
+<h4>Key v2 config fields</h4>
+<table>
+<tr><th>Field (conceptual)</th><th>Meaning</th></tr>
+<tr><td>certThreshold</td><td>Fraction of masternode votes needed for a valid QC — 0.667 (2/3), matching the BFT honest-majority requirement from Part I, Module 7.</td></tr>
+<tr><td>timeoutPeriod / timeoutSyncThreshold</td><td>How long a masternode waits for a proposal before broadcasting a timeout vote, and how many timeout votes trigger a round change.</td></tr>
+<tr><td>minePeriod / block period</td><td>Target seconds between blocks — 2s in this devnet.</td></tr>
+<tr><td>switchBlock</td><td>The block number at which a network transitions from v1 to v2 consensus rules (0 = v2 from genesis, as configured here).</td></tr>
+</table>
+</section>
+
+<section id="xdpos-masternodes">
+<h2>Masternode Election — how the validator set is actually chosen</h2>
+<p>On a public XDC network, the masternode set isn't fixed — it's the outcome of an on-chain vote run through a system smart contract (deployed at a well-known address, conventionally referenced in this guide as the "Masternode/Validator contract"). Any address can register as a candidate by staking a minimum amount of XDC; any XDC holder can then "vote" for a candidate by locking additional XDC behind them (this is delegated staking exactly as described in Part I, Module 4). At each epoch boundary (minus the <code>gap</code>, see above), the contract's current vote tallies are read, the top addresses (up to a configured maximum — 108 on the public network) become the masternode set for the next epoch, and anyone who drops out of the top ranks stops proposing/voting.</p>
+<p>On a <strong>private/consortium</strong> deployment like the pvt-xdpos devnet, this election machinery still exists in the code, but it's short-circuited: the initial masternode set is simply hardcoded into the genesis <code>extraData</code> field (Part VI covers this byte-for-byte), so there's no need to wait for votes to accumulate before the chain can start producing blocks. The contract is still deployed and could be used to change the set later, but a 4-masternode private devnet typically never bothers.</p>
+<div class="card warn"><h4>Penalty &amp; comeback list</h4><p>Masternodes that miss too many proposal turns or get caught equivocating are added to a penalty list and temporarily excluded from the round-robin schedule (their slot is skipped) without a full re-election — a lighter-weight version of Ethereum's inactivity penalties (Part I, Module 14) that doesn't require slashing to be economically meaningful on a small, mostly-trusted masternode set.</p></div>
+
+<div class="diagram">
+<svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="225" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">Public network: live election</text>
+  <text x="675" y="24" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">Private devnet: hardcoded</text>
+  <line x1="450" y1="10" x2="450" y2="250" stroke="#eaddaa" stroke-width="2" stroke-dasharray="6,6"/>
+
+  <rect x="40" y="45" width="180" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="130" y="72" text-anchor="middle" font-size="11" fill="#2b2410">Candidate stakes XDC</text>
+  <path d="M130 91 L130 111" stroke="#b8860b" stroke-width="2" marker-end="url(#ah10)"/>
+  <rect x="40" y="111" width="180" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="130" y="138" text-anchor="middle" font-size="11" fill="#2b2410">Holders vote (delegate)</text>
+  <path d="M130 157 L130 177" stroke="#b8860b" stroke-width="2" marker-end="url(#ah10)"/>
+  <rect x="40" y="177" width="180" height="46" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="130" y="200" text-anchor="middle" font-size="11" fill="#2b2410">Epoch − gap: tally read</text>
+  <text x="130" y="213" text-anchor="middle" font-size="9.5" fill="#6b5f3e">top 108 become masternodes</text>
+
+  <rect x="500" y="45" width="360" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="680" y="72" text-anchor="middle" font-size="11" fill="#2b2410">4 addresses written directly into genesis <tspan font-family="monospace">extraData</tspan></text>
+  <path d="M680 91 L680 111" stroke="#b8860b" stroke-width="2" marker-end="url(#ah10)"/>
+  <rect x="500" y="111" width="360" height="46" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="680" y="138" text-anchor="middle" font-size="11" fill="#2b2410">chain starts producing blocks immediately</text>
+  <path d="M680 157 L680 177" stroke="#b8860b" stroke-width="2" marker-end="url(#ah10)"/>
+  <rect x="500" y="177" width="360" height="46" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="680" y="197" text-anchor="middle" font-size="11" fill="#2b2410">election contract still deployed,</text>
+  <text x="680" y="211" text-anchor="middle" font-size="10" fill="#6b5f3e">just unused unless the set is later opened up</text>
+
+  <defs><marker id="ah10" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b8860b"/></marker></defs>
+</svg>
+<div class="dcap">Fig xdpos-masternodes.1 — same underlying contract logic, two very different starting conditions</div>
+</div>
+</section>
+
+<section id="xdpos-vs-eth">
+<h2>XDPoS vs Ethereum PoS — the full comparison</h2>
+<table>
+<tr><th>Aspect</th><th>Ethereum PoS</th><th>XDPoS (v2)</th></tr>
+<tr><td>Minimum stake</td><td>32 ETH per validator</td><td>Masternode candidacy threshold (network-configured); private devnets hardcode masternodes instead</td></tr>
+<tr><td>Block time</td><td>12 seconds</td><td>2 seconds</td></tr>
+<tr><td>Finality mechanism</td><td>Casper FFG — two-epoch justify→finalize (~12–15 min)</td><td>Per-block quorum certificates — two-block commit rule (seconds)</td></tr>
+<tr><td>Epoch length</td><td>32 slots (~6.4 min)</td><td>900 blocks (~30 min)</td></tr>
+<tr><td>Proposer selection</td><td>Pseudo-random per slot, RANDAO + stake-weighted</td><td>Deterministic round-robin over the masternode list</td></tr>
+<tr><td>Validator set size</td><td>Unbounded, permissionless (900k+ validators live)</td><td>Bounded — up to 108 masternodes (public); as few as 4 on a private devnet</td></tr>
+<tr><td>Delegation model</td><td>Liquid/pool staking via third-party protocols (Lido, Rocket Pool)</td><td>Native on-chain candidate voting built into the protocol itself</td></tr>
+<tr><td>Network permissioning</td><td>Fully permissionless</td><td>Permissioned masternode set (elected publicly, or hardcoded privately)</td></tr>
+<tr><td>Client architecture</td><td>Split Execution Layer + Consensus Layer, two separate processes</td><td>Single binary — consensus engine plugged directly into the forked go-ethereum node</td></tr>
+<tr><td>Signature scheme</td><td>BLS (aggregatable, for large committees)</td><td>ECDSA (secp256k1) — sufficient at masternode-set scale (≤108), no aggregation needed</td></tr>
+<tr><td>Slashing</td><td>Automatic stake burn for provable equivocation</td><td>Penalty-list exclusion; full slashing is lighter-weight given the smaller, more identifiable validator set</td></tr>
+</table>
+</section>
+<div class="part-divider" id="part3">
+  <div class="part-eyebrow">Part III</div>
+  <h1>What Puppeth is, and what it actually does</h1>
+  <p>You asked "what is puppet" — it's <strong>Puppeth</strong>, and it's not a smart contract tool or a testing framework. It's a genesis-configuration wizard.</p>
+</div>
+
+<section id="puppeth">
+<h2>Puppeth, explained properly</h2>
+<p>Puppeth is a command-line interactive wizard shipped inside go-ethereum's source tree (and inherited by XDPoSChain, since it's a go-ethereum fork) whose entire job is to generate a correct <code>genesis.json</code> — plus, in the upstream go-ethereum version, optional Docker/systemd deployment scaffolding for a new network. Without it, launching a private network means hand-writing a genesis file that must get several genuinely fiddly things exactly right: the consensus config block's nested fields, the <code>extraData</code> byte layout encoding your initial signer/masternode list, and — for XDPoS specifically — the pre-deployed system contract bytecode and storage slots (the masternode/validator contract, block-signer contract, randomize contract, and multisig wallets). Get any single byte of that wrong and every node that inits from it computes a different state root, which means the network can never agree on genesis at all (this is exactly why Part VI stresses "genesis must be byte-identical everywhere").</p>
+<p>Practically: you answer a sequence of prompts (network name, consensus engine, block period, epoch length, reward amount, initial signer addresses, pre-funded accounts, chain ID), and Puppeth assembles a <code>genesis.json</code> that already has the correct shape for whichever consensus engine you picked — Clique, Ethash, or, in the XinFin fork, XDPoS.</p>
+</section>
+
+<section id="puppeth-flow">
+<h2>Puppeth — the actual menu walkthrough</h2>
+<div class="term">
+<div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">bash</span></div>
+<pre>cd ~/xdposchain
+GOPATH=/home/&lt;user&gt;/go make puppeth
+./build/bin/puppeth --network mynetwork</pre>
+</div>
+<ol>
+<li><strong>Main menu → "2. Configure new genesis"</strong> — starts a fresh genesis instead of editing/importing an existing one.</li>
+<li><strong>Consensus engine choice → "3. XDPoS - delegated-proof-of-stake"</strong> — tells Puppeth to populate the XDPoS-specific config block (period, epoch, reward, v2 fields) instead of Clique's simpler signer-rotation config.</li>
+<li><strong>Block period</strong> — target seconds between blocks (2, in the private devnet).</li>
+<li><strong>Epoch</strong> — blocks per masternode-list recomputation (900).</li>
+<li><strong>Reward</strong> — XDC minted to the proposer/masternode set per reward checkpoint (10).</li>
+<li><strong>v2 switch block</strong> — 0 to run BFT-style v2 consensus from genesis, or a future block number to launch on v1 and cut over later.</li>
+<li><strong>Timeout / certificate threshold</strong> — the BFT liveness and safety parameters described in Part II (0.667 in this devnet).</li>
+<li><strong>Masternode signers</strong> — the initial validator addresses, which Puppeth encodes into <code>extraData</code> for you (see Part VI for the exact byte layout it's producing).</li>
+<li><strong>Foundation wallet / team wallet</strong> — addresses for the pre-deployed multisig contracts Puppeth injects into <code>alloc</code>.</li>
+<li><strong>Pre-funded accounts</strong> — any addresses you want to start with a non-zero balance (typically your validator/masternode addresses, so they have gas to operate from block zero).</li>
+<li><strong>Chain ID</strong> — the network's unique identifier (9876 for this private devnet), embedded in every signed transaction (Part I, Module 17) to prevent cross-network replay.</li>
+<li><strong>Export</strong> — writes the finished <code>genesis.json</code> to disk, ready to be copied identically to every node and passed to <code>XDC init</code>.</li>
+</ol>
+<div class="card good"><h4>Private network genesis values used in this devnet</h4>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Block period</td><td>2 seconds</td></tr>
+<tr><td>Epoch</td><td>900 blocks</td></tr>
+<tr><td>Reward</td><td>10 XDC</td></tr>
+<tr><td>Reward checkpoint</td><td>900 blocks</td></tr>
+<tr><td>Gap</td><td>450 blocks</td></tr>
+<tr><td>v2 switch block</td><td>0 (BFT from genesis)</td></tr>
+<tr><td>Certificate threshold</td><td>0.667</td></tr>
+<tr><td>Max masternodes</td><td>108 (only 4 actually used)</td></tr>
+<tr><td>Chain ID</td><td>9876</td></tr>
+</table>
+</div>
+</section>
+<div class="part-divider" id="part4">
+  <div class="part-eyebrow">Part IV</div>
+  <h1>Node types — properly detailed</h1>
+  <p>Every role below runs the exact same <code>XDC</code> binary — the difference is entirely which flags are set, whether a signing keystore is unlocked, and what ports/APIs are exposed. This is what "detailed nodes" means concretely.</p>
+</div>
+
+<section id="nodes">
+<h2>4.1 — Bootnode (discovery-only)</h2>
+<div class="card info">
+<p>A bootnode does not execute the EVM, hold state, sign blocks, or sync the chain at all. Its only function is Kademlia-style peer discovery — helping new nodes find existing peers via signed ENR records over UDP.</p>
+<ul>
+<li><strong>Binary:</strong> <code>bootnode</code>, built alongside <code>XDC</code> (<code>make bootnode</code>).</li>
+<li><strong>Key:</strong> <code>boot.key</code> — a raw secp256k1 key that derives the bootnode's <strong>node ID</strong> (its P2P identity), not an account/wallet.</li>
+</ul>
+<div class="term"><div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">start-bootnode.sh</span></div>
+<pre>bootnode -nodekey ./bootnode/boot.key -addr ":30310" -verbosity 5</pre></div>
+<p>Output is an <code>enode://&lt;nodeid&gt;@&lt;ip&gt;:30310</code> URI that every other node lists as a bootnode/static peer. Port: UDP 30310 only (no TCP RPC, no sync traffic). It's stateless — restarting with the same key reuses the same node ID, and if it goes down <em>after</em> peers already know each other, the network keeps running fine; it's only needed for discovering <em>new</em> peers.</p>
+</div>
+
+<h2>4.2 — Validator Node (Masternode)</h2>
+<div class="card">
+<p>A full node that also holds an unlocked signing keystore and actively participates in consensus: proposing blocks on its round-robin turn, voting on others' proposals, and issuing timeout messages if a leader stalls (Part II).</p>
+<div class="term"><div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">start-node1.sh</span></div>
+<pre>./build/bin/XDC \
+  --datadir ~/XinFin-Node/private/node1 \
+  --networkid 9876 \
+  --syncmode full \
+  --gcmode archive \
+  --port 30303 \
+  --bootnodes "enode://&lt;bootnode-id&gt;@&lt;bootnode-ip&gt;:30310" \
+  --identity "node1-validator" \
+  --mine \
+  --unlock "0x&lt;validator1-address&gt;" \
+  --password ~/XinFin-Node/private/node1/password.txt \
+  --etherbase "0x&lt;validator1-address&gt;" \
+  --http --http.addr "0.0.0.0" --http.port 8501 \
+  --http.api "admin,db,eth,net,web3,personal,txpool,XDPoS" \
+  --ws --ws.addr "0.0.0.0" --ws.port 8502 --ws.api "eth,net,web3,personal" \
+  --gasprice "1" --targetgaslimit "4700000" --nat "any" --verbosity 4</pre></div>
+<table>
+<tr><th>Flag</th><th>Meaning</th></tr>
+<tr><td><code>--mine</code></td><td>Enables block proposal on this node's round-robin turn.</td></tr>
+<tr><td><code>--etherbase</code></td><td>Address credited with the reward-checkpoint payout (10 XDC).</td></tr>
+<tr><td><code>--unlock</code> + <code>--password</code></td><td>Auto-decrypts the keystore at startup so it can sign without manual intervention every block — the exact security tradeoff a validator node has to accept.</td></tr>
+<tr><td><code>--gcmode archive</code></td><td>Retains full historical state; heavier disk, needed if this node also backs an explorer/RPC.</td></tr>
+<tr><td><code>--http.api ...,XDPoS</code></td><td>Exposes the custom <code>XDPoS</code> RPC namespace — masternode list, penalty list, and v2 QC/timeout info.</td></tr>
+</table>
+<p><strong>Ports:</strong> 30303 TCP/UDP (P2P), 8501 HTTP-RPC, 8502 WS-RPC, plus the local <code>XDC.ipc</code> socket. Only validator nodes are exposed to penalty-list risk — missing a proposal turn or double-signing gets an address flagged and temporarily/permanently dropped from the masternode schedule.</p>
+</div>
+
+<h2>4.3 — Full Node (non-validator / observer)</h2>
+<div class="card">
+<p>Syncs and independently validates the entire chain, keeps full state, serves RPC — but never proposes blocks (no keystore unlocked). Used for dApp backends, explorers, wallets, or pure redundancy.</p>
+<div class="term"><div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">start-fullnode.sh</span></div>
+<pre>./build/bin/XDC \
+  --datadir ~/XinFin-Node/private/node5-fullnode \
+  --networkid 9876 --syncmode full --port 30303 \
+  --bootnodes "enode://&lt;bootnode-id&gt;@&lt;bootnode-ip&gt;:30310" \
+  --http --http.addr "0.0.0.0" --http.port 8501 \
+  --http.api "eth,net,web3,txpool,XDPoS" --nat "any"</pre></div>
+<p>The only real difference from §4.2: no <code>--mine</code>, no <code>--unlock</code>, no <code>--etherbase</code>. It still fully verifies every block's quorum certificate — it just never produces one.</p>
+</div>
+
+<h2>4.4 — RPC / Gateway Node</h2>
+<div class="card">
+<p>A full node purpose-built to sit behind a load balancer and absorb public JSON-RPC/WebSocket traffic, keeping validators off the open internet entirely.</p>
+<ul>
+<li>Usually <code>--gcmode archive</code> so historical "as of block N" queries (<code>eth_getBalance</code>, <code>eth_call</code>) work.</li>
+<li><code>--http.corsdomain</code> plus an nginx/HAProxy layer in front for rate limiting.</li>
+<li><code>--txpool.pricelimit</code> tuned against spam.</li>
+<li>Never has <code>--mine</code> or an unlocked key — a compromised RPC node should never be able to sign a block.</li>
+</ul>
+</div>
+
+<h2>4.5 — Standby / Backup Validator Node</h2>
+<div class="card danger">
+<p>A hot-spare mirroring a validator's datadir/keystore, kept with mining disabled (or the process stopped) so two live copies of the same key never sign simultaneously — XDPoS treats that as equivocation, exactly the same penalty-triggering event as a malicious double-sign (Part II). Failover between primary and standby must be mutually exclusive, either manually or via an orchestrator that guarantees only one is ever <code>--mine</code>-active at a time.</p>
+</div>
+</section>
+
+<section id="nodes-flow">
+<h2>4.6 — Node-to-node connection lifecycle</h2>
+<ol>
+<li><strong>Init:</strong> <code>XDC init private-genesis.json --datadir &lt;dir&gt;</code> computes the genesis state root from <code>alloc</code>+<code>config</code> and writes it into that node's local LevelDB (see Part VI for exactly what this computes).</li>
+<li><strong>Identity load:</strong> The node generates or loads its <code>nodekey</code> (P2P identity — separate from any validator signing keystore) at <code>&lt;datadir&gt;/geth/nodekey</code>.</li>
+<li><strong>Discovery:</strong> Dials the bootnode's enode URI, receives peer ENRs, and populates its Kademlia peer table.</li>
+<li><strong>Handshake:</strong> RLPx encrypted transport handshake, then the <code>eth</code>/<code>XDPoS</code> subprotocol handshake exchanging genesis hash, chain ID, and current head — a mismatched genesis hash gets the peer dropped immediately, which is exactly the failure mode a wrong genesis byte produces.</li>
+<li><strong>Sync:</strong> Requests headers/bodies from peers, replays state transitions until <code>eth.blockNumber</code> matches the network head.</li>
+<li><strong>Gossip:</strong> Once synced, new blocks and (for validators) votes/timeout messages propagate peer-to-peer, independently re-validated at every hop before relaying.</li>
+<li><strong>Consensus (validators only):</strong> On its round-robin turn, the node assembles a block from its mempool, signs it, and broadcasts — peers collect 2/3+ votes into a QC for finality.</li>
+</ol>
+
+<h3>Verifying a node is healthy</h3>
+<div class="term"><div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">XDC attach console</span></div>
+<pre>./build/bin/XDC attach ~/XinFin-Node/private/node1/XDC.ipc
+
+&gt; admin.nodeInfo.enode           // this node's own enode URI
+&gt; admin.peers.length              // connected peer count
+&gt; net.peerCount
+&gt; eth.blockNumber                 // should keep increasing every ~2s
+&gt; eth.syncing                     // false once fully synced
+&gt; XDPoS.getMasternodesByNumber()  // current masternode set (custom namespace)
+&gt; txpool.status                   // pending/queued tx counts</pre></div>
+
+<h3>Per-validator datadir contents</h3>
+<pre>node1/
+├── geth/
+│   ├── chaindata/       ← LevelDB: blocks, state trie, receipts
+│   ├── nodekey          ← P2P identity key (auto-generated if absent)
+│   └── lightchaindata/  ← only present for light clients
+├── keystore/
+│   └── UTC--...--&lt;address&gt;   ← encrypted validator signing key
+├── password.txt          ← plaintext password used with --unlock (secure this!)
+└── XDC.ipc                ← local RPC socket (created at runtime)</pre>
+
+<div class="card warn"><h4>Security notes across node types</h4>
+<ul>
+<li>Only validator nodes should ever have an unlocked key + <code>--mine</code>; every other role is strictly read/relay.</li>
+<li><code>password.txt</code> and <code>keystore/</code> should be filesystem-permissioned (<code>chmod 600</code>) and never leave the host unencrypted, including in backups.</li>
+<li>Two live processes with the same unlocked key (primary + standby both active) is the single most common cause of accidental self-penalty in devnets — treat it as equivalent to malicious equivocation from the protocol's point of view.</li>
+<li>Bootnodes and RPC nodes are safe to expose publicly since neither holds signing power; validator P2P ports are typically firewalled to known peer IPs only.</li>
+</ul>
+</div>
+</section>
+<div class="part-divider" id="part5">
+  <div class="part-eyebrow">Part V</div>
+  <h1>The pvt-xdpos repository, and how it maps back to PoS theory</h1>
+  <p>Repository: <a href="https://github.com/shhalaka/pvt-xdpos.git" target="_blank">github.com/shhalaka/pvt-xdpos</a> — local copy at <code>D:\Project\Subnet</code>. This is a private, personal repository (I can't browse its private contents directly), so the description below is grounded in what's already documented in your local build notes plus how XDPoSChain itself works.</p>
+</div>
+
+<section id="repo">
+<h2>What this repo actually is</h2>
+<p>It is <strong>not</strong> a blockchain implementation written from scratch — it's a fully-documented, reproducible deployment of the real <code>XDC</code>/<code>bootnode</code> binaries (built from the upstream XDPoSChain source, v2.7.1) into a small permissioned network. Everything Part I, Module 29's checklist describes — data structures, consensus, mempool, RPC, storage — is already implemented for you inside XDPoSChain; this repo's job is purely the operational layer on top: generating a correct genesis (via Puppeth, Part III), provisioning validator keystores, wiring up a bootnode, and scripting startup/shutdown/health-check across 4 masternodes.</p>
+<ul>
+<li>Phase-by-phase engineering notes (Phase 1 through Phase 7B) — a build log documenting each stage: binary build → account generation → genesis generation → bootnode setup → datadir init → network launch → validation.</li>
+<li>Generated genesis, bootnode key, 4 validator keystores, and launch/stop/status scripts.</li>
+<li>Deployment guides for single-machine, multi-machine, and macOS setups.</li>
+<li>A validation checklist and troubleshooting notes (peer count, block progression, RPC reachability).</li>
+</ul>
+</section>
+
+<section id="repo-vs-pos">
+<h2>How it compares to textbook Proof of Stake</h2>
+<p>This is the question worth being precise about, because the honest answer is: <strong>it's the same PoS <em>concept</em>, deliberately simplified along every axis that matters for a small trusted consortium instead of a global adversarial network.</strong> Nothing about the underlying mechanism is different in kind — stake still gates who can propose/vote, votes still need a 2/3 supermajority, blocks still get finalized via quorum certificates (Part II). What's different is scale and trust assumptions:</p>
+<table>
+<tr><th>Aspect</th><th>Textbook / Ethereum PoS</th><th>pvt-xdpos (XDPoS v2)</th></tr>
+<tr><td>Goal</td><td>Global, adversarial, permissionless public chain</td><td>Private consortium devnet — trusted operators, local network</td></tr>
+<tr><td>Consensus</td><td>Casper FFG + LMD GHOST, split proposal/finality</td><td>XDPoS v2 — pipelined BFT, proposal and finality unified per-block</td></tr>
+<tr><td>Validator entry</td><td>Permissionless, 32 ETH deposit, open to anyone</td><td>Permissioned — 4 masternodes hardcoded in genesis <code>extraData</code>, no live election needed</td></tr>
+<tr><td>Client architecture</td><td>Separate Execution + Consensus Layer processes (Part I, Module 5)</td><td>Single <code>XDC</code> binary doing both jobs (Part II)</td></tr>
+<tr><td>Deployment</td><td>Public testnets/mainnet, thousands of independently-operated nodes</td><td>Local scripts + a shared genesis file, 4–5 nodes on one operator's infrastructure</td></tr>
+<tr><td>Finality latency</td><td>~12–15 minutes (two-epoch Casper FFG rule)</td><td>Seconds (two-block QC commit rule)</td></tr>
+<tr><td>Adversarial assumption</td><td>Must tolerate unknown, potentially hostile validators worldwide</td><td>Assumes largely honest, known operators — BFT math is still applied, but mainly as a liveness/consistency guarantee rather than a defense against active attackers</td></tr>
+<tr><td>Token</td><td>ETH</td><td>XDC (private devnet: no real economic value, purely functional)</td></tr>
+</table>
+<div class="card info"><h4>The one-sentence answer</h4><p>pvt-xdpos is what you get when you take real, production-grade PoS/BFT consensus software and point it at a tiny, permissioned, single-operator network instead of a public one — every mechanism from Part I and Part II is genuinely running, just with a validator set of 4 known addresses instead of thousands of anonymous, staked strangers.</p></div>
+</section>
+<div class="part-divider" id="part6">
+  <div class="part-eyebrow">Part VI</div>
+  <h1>Genesis — every field, in detail</h1>
+  <p>The genesis block is block 0: no parent, no prior state, the single fixed point every node must independently compute the exact same hash for. Below is every field that appears in <code>private-genesis.json</code>, what it means, and what actually happens when you run <code>XDC init</code> against it.</p>
+</div>
+
+<section id="genesis">
+<h2>6.1 — Top-level fields</h2>
+<div class="qa">
+<div class="q">config</div>
+<div class="a"><p>A nested object carrying every chain-rule and consensus parameter — chain ID, EVM hard-fork activation blocks (homestead, EIP-150, etc., inherited from go-ethereum's fork-numbering system), and the XDPoS-specific sub-object (period, epoch, reward, v1/v2 fields — all of Part II §xdpos-v1/v2). This is the single most important object in the file: every node must derive an identical internal chain configuration from it.</p></div>
+</div>
+<div class="qa">
+<div class="q">chainId</div>
+<div class="a"><p>9876 for this private devnet. Embedded in every transaction signature (EIP-155, Part I Module 17) specifically so a transaction signed for this private network can never be replayed on public XDC mainnet or any other chain sharing similar tooling — and vice versa.</p></div>
+</div>
+<div class="qa">
+<div class="q">nonce</div>
+<div class="a"><p>A PoW leftover field (used by miners to find a valid hash) — meaningless under XDPoS since there's no mining puzzle, conventionally left at its default/zero value.</p></div>
+</div>
+<div class="qa">
+<div class="q">timestamp</div>
+<div class="a"><p>Unix time the genesis block was authored. Every subsequent block's timestamp must be strictly greater than its parent's, so this is the floor the entire chain's clock is built on.</p></div>
+</div>
+<div class="qa">
+<div class="q">extraData</div>
+<div class="a"><p>The field carrying the <strong>initial masternode signer list</strong>. Structurally (inherited from Clique's convention, which XDPoS reused): 32 bytes of arbitrary "vanity" data, followed by the concatenated 20-byte addresses of every initial signer, followed by 65 bytes reserved for a seal signature (unused/zeroed at genesis, since genesis itself is never "signed" by a proposer — it's simply agreed upon by everyone running the same file). For this devnet, that's 32 bytes vanity + 4 × 20 bytes (validator1..4) + 65 zero bytes.</p></div>
+</div>
+<div class="qa">
+<div class="q">gasLimit</div>
+<div class="a"><p>4,700,000 in this devnet — the maximum gas the very first block (and, as a starting point, blocks shortly after) may consume; later blocks can adjust this within protocol-defined bounds as usage changes (Part I, Module 16).</p></div>
+</div>
+<div class="qa">
+<div class="q">difficulty</div>
+<div class="a"><p>A PoW-era field, set to a nominal constant (commonly <code>1</code>) in PoS/PoA/BFT-style private networks since there's no proof-of-work puzzle to size a target against — it's kept only because the block header format is shared with PoW go-ethereum and can't simply omit the field.</p></div>
+</div>
+<div class="qa">
+<div class="q">mixHash</div>
+<div class="a"><p>Another PoW artifact (part of Ethash's proof verification) — zero/empty in an XDPoS genesis since there's no hash puzzle being verified.</p></div>
+</div>
+<div class="qa">
+<div class="q">coinbase</div>
+<div class="a"><p>The default block-reward beneficiary field on the header — at genesis specifically, there's no reward to pay (block 0 isn't "proposed" by anyone), so it's conventionally the zero address.</p></div>
+</div>
+<div class="qa">
+<div class="q">alloc</div>
+<div class="a"><p>The pre-funded account table and — critically for XDPoS — the pre-deployed system contracts. This is where the chain's <em>starting state</em> lives; everything else in the genesis file configures <em>rules</em>, but <code>alloc</code> is actual state.</p></div>
+</div>
+<div class="qa">
+<div class="q">number</div>
+<div class="a"><p>Always 0 — this is, by definition, the block-number-zero block.</p></div>
+</div>
+<div class="qa">
+<div class="q">gasUsed</div>
+<div class="a"><p>0 — no transactions execute in the genesis block itself; all its state comes directly from <code>alloc</code>, not from executing transactions.</p></div>
+</div>
+<div class="qa">
+<div class="q">parentHash</div>
+<div class="a"><p>The zero hash (<code>0x00...00</code>) — by definition, genesis has no parent.</p></div>
+</div>
+<div class="qa">
+<div class="q">baseFeePerGas</div>
+<div class="a"><p>Null in this network, since it predates/doesn't enable an EIP-1559-style base-fee market (Part I, Module 16) — fees here are flat, not burned.</p></div>
+</div>
+</section>
+
+<section>
+<h2>6.2 — What's actually inside <code>alloc</code></h2>
+<p>Beyond ordinary pre-funded validator accounts (each masternode address gets a large starting balance so it has gas to operate from block 0 without needing an external faucet), XDPoS genesis files pre-deploy several system contracts directly as raw bytecode + storage slots at fixed, conventional addresses — this is the part Puppeth (Part III) exists specifically to get right, since hand-writing correct deployed bytecode and storage layout by hand is extremely error-prone:</p>
+<table>
+<tr><th>Conventional address suffix</th><th>Contract</th><th>Role</th></tr>
+<tr><td><code>0x...88</code></td><td>Validator / Masternode contract</td><td>Tracks candidate registration, stake-weighted votes, and the current masternode list (Part II §xdpos-masternodes).</td></tr>
+<tr><td><code>0x...89</code></td><td>Block signer contract</td><td>Records which masternode signed which block — the on-chain bookkeeping v1's "second-signing" checkpoint scheme (and v2's QC logic) reads from.</td></tr>
+<tr><td><code>0x...90</code></td><td>Randomize contract</td><td>Supplies on-chain randomness used in masternode-related scheduling/selection logic.</td></tr>
+<tr><td><code>0x...68</code></td><td>Foundation multisig wallet</td><td>Holds/manages foundation-controlled funds from genesis.</td></tr>
+<tr><td><code>0x...99</code></td><td>Team multisig wallet</td><td>Holds/manages team-controlled funds from genesis.</td></tr>
+</table>
+<p>Because these are <em>pre-deployed</em> (bytecode written directly into <code>alloc</code>, not deployed by a genesis transaction — recall <code>gasUsed</code> is 0), they exist and are callable from block 1 onward with zero deployment lag, which matters for a masternode contract that the consensus engine itself needs to query starting from the very first epoch.</p>
+</section>
+
+<section id="genesis-flow">
+<h2>6.3 — From file to running network: what <code>XDC init</code> actually computes</h2>
+<ol>
+<li><strong>Puppeth or hand-crafting produces</strong> <code>private-genesis.json</code> containing everything in §6.1–6.2.</li>
+<li><strong>The file is copied, byte-for-byte identical, to every node</strong> that will join the network — bootnode excluded, since it never touches chain state.</li>
+<li><strong>Running <code>XDC init private-genesis.json --datadir &lt;dir&gt;</code></strong> on each node: parses the file, builds the initial state trie from <code>alloc</code> (every account balance and every system contract's bytecode + storage becomes a leaf in a fresh Merkle Patricia Trie, Part I Module 18), computes the resulting <strong>state root</strong> hash, assembles the full genesis block header (using that state root plus the other top-level fields), and writes both the header and the trie into that node's local LevelDB.</li>
+<li><strong>The genesis block hash</strong> (<code>0xc1d1e1195f67cc66bc6e2b169f02675a8488e4776815d02afe2251bc660004f3</code> for this devnet) is simply the hash of that fully-assembled header — a deterministic function of every single field above. Change one byte anywhere in <code>alloc</code> or <code>config</code>, and this hash changes completely.</li>
+<li><strong>When nodes connect (Part IV §4.6, step 4),</strong> the very first thing the <code>eth</code>/<code>XDPoS</code> subprotocol handshake checks is genesis hash equality — a mismatch means the peer computed a different state root from a different (or subtly corrupted) genesis file, and the connection is refused outright. This is the actual failure mode "genesis must be identical everywhere" protects against: it's not a style preference, it's a hard equality check baked into the P2P handshake.</li>
+</ol>
+<div class="card danger"><h4>Why this can't be fixed after the fact</h4><p>Once even one node has already run <code>XDC init</code> against a slightly different genesis file, there is no "sync it back" — its local genesis state root is permanently baked into block 0 of its local chain. The only fix is wiping that node's datadir and re-running <code>XDC init</code> with the correct, matching file.</p></div>
+
+<div class="diagram">
+<svg viewBox="0 0 900 260" xmlns="http://www.w3.org/2000/svg" font-family="ui-monospace,Consolas,monospace">
+  <text x="450" y="22" text-anchor="middle" font-size="13" font-weight="700" fill="#8a5a00">private-genesis.json → 4 running, peered nodes</text>
+
+  <rect x="20" y="45" width="140" height="56" rx="8" fill="#fde68a" stroke="#c99a1f"/>
+  <text x="90" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#2b2410">Puppeth /</text>
+  <text x="90" y="83" text-anchor="middle" font-size="11" font-weight="700" fill="#2b2410">hand-crafted</text>
+  <text x="90" y="96" text-anchor="middle" font-size="9.5" fill="#6b5f3e">genesis.json</text>
+  <path d="M160 73 L200 73" stroke="#b8860b" stroke-width="2" marker-end="url(#ah8)"/>
+
+  <rect x="202" y="45" width="150" height="56" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="277" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#2b2410">copied byte-for-byte</text>
+  <text x="277" y="84" text-anchor="middle" font-size="9.5" fill="#6b5f3e">to node1..node4</text>
+  <path d="M352 73 L392 73" stroke="#b8860b" stroke-width="2" marker-end="url(#ah8)"/>
+
+  <rect x="394" y="45" width="170" height="56" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="479" y="64" text-anchor="middle" font-size="11" font-weight="700" fill="#2b2410">XDC init (each node)</text>
+  <text x="479" y="80" text-anchor="middle" font-size="9.5" fill="#6b5f3e">alloc → state trie</text>
+  <text x="479" y="92" text-anchor="middle" font-size="9.5" fill="#6b5f3e">→ state root</text>
+  <path d="M564 73 L604 73" stroke="#b8860b" stroke-width="2" marker-end="url(#ah8)"/>
+
+  <rect x="606" y="45" width="150" height="56" rx="8" fill="#fef3c7" stroke="#eaddaa"/>
+  <text x="681" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#2b2410">genesis hash</text>
+  <text x="681" y="84" text-anchor="middle" font-size="9.5" fill="#6b5f3e">written to local DB</text>
+  <path d="M756 73 L796 73" stroke="#2f7a3d" stroke-width="2.5" marker-end="url(#ah9)"/>
+
+  <rect x="798" y="45" width="82" height="56" rx="8" fill="#d4f5d9" stroke="#2f7a3d" stroke-width="2"/>
+  <text x="839" y="70" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1c4d24">P2P</text>
+  <text x="839" y="84" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1c4d24">handshake</text>
+
+  <!-- four node boxes at bottom, converging -->
+  <g font-size="10">
+    <rect x="60" y="150" width="90" height="40" rx="6" fill="#fef9e8" stroke="#eaddaa"/>
+    <text x="105" y="174" text-anchor="middle" fill="#2b2410">node1</text>
+    <rect x="200" y="150" width="90" height="40" rx="6" fill="#fef9e8" stroke="#eaddaa"/>
+    <text x="245" y="174" text-anchor="middle" fill="#2b2410">node2</text>
+    <rect x="340" y="150" width="90" height="40" rx="6" fill="#fef9e8" stroke="#eaddaa"/>
+    <text x="385" y="174" text-anchor="middle" fill="#2b2410">node3</text>
+    <rect x="480" y="150" width="90" height="40" rx="6" fill="#fef9e8" stroke="#eaddaa"/>
+    <text x="525" y="174" text-anchor="middle" fill="#2b2410">node4</text>
+  </g>
+  <path d="M105 150 L400 205" stroke="#eaddaa" stroke-width="1.5"/>
+  <path d="M245 150 L400 205" stroke="#eaddaa" stroke-width="1.5"/>
+  <path d="M385 150 L400 205" stroke="#eaddaa" stroke-width="1.5"/>
+  <path d="M525 150 L400 205" stroke="#eaddaa" stroke-width="1.5"/>
+  <circle cx="400" cy="212" r="8" fill="#2f7a3d"/>
+  <text x="400" y="238" text-anchor="middle" font-size="11" fill="#2f7a3d">all 4 genesis hashes match → peers accept each other</text>
+  <text x="400" y="252" text-anchor="middle" font-size="10" fill="#c0392b">any mismatch anywhere → that connection is refused outright</text>
+
+  <defs>
+    <marker id="ah8" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#b8860b"/></marker>
+    <marker id="ah9" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2f7a3d"/></marker>
+  </defs>
+</svg>
+<div class="dcap">Fig 6.3.1 — one file, independently re-derived on every node, checked for equality at the very first P2P handshake</div>
+</div>
+</section>
+
+<section>
+<h2>6.4 — Real values from this devnet's <code>private-genesis.json</code></h2>
+<div class="term"><div class="tbar"><div class="tdot r"></div><div class="tdot y"></div><div class="tdot g"></div><span class="tname">private-genesis.json (summary)</span></div>
+<pre>chainId:              9876
+genesis hash:          0xc1d1e1195f67cc66bc6e2b169f02675a8488e4776815d02afe2251bc660004f3
+consensus:             XDPoS
+block period:          2
+epoch:                 900
+gap:                   450
+reward:                10
+v2 switchBlock:        0
+certificate threshold: 0.667
+gasLimit:              4700000
+masternodes:           4 (node1..node4)</pre></div>
+</section>
+</main>
+</div>
+
+<a href="#part1" class="top-anchor">↑ top</a>
+
+<footer>
+<p>Compiled from XDPoSChain source (fork of go-ethereum), release v2.7.1, Puppeth's genesis wizard, and the pvt-xdpos private devnet build notes.</p>
+<p>Local copy: D:/Project/Subnet/html/ — open directly in a browser.</p>
+</footer>
+</body>
+</html>
