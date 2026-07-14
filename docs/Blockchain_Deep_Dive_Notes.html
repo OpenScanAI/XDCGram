@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Blockchain Deep Dive — Complete Notes</title>
+<style>
+  :root{
+    --bg:#0b0f14;
+    --panel:#121821;
+    --panel2:#161f2b;
+    --accent:#f2a93b;
+    --accent2:#3bb2f2;
+    --text:#e8edf2;
+    --muted:#9fb0c0;
+    --border:#243040;
+    --code:#1a2330;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.65;
+  }
+  .layout{display:flex;max-width:1400px;margin:0 auto;}
+  nav{
+    width:280px;
+    flex-shrink:0;
+    position:sticky;
+    top:0;
+    height:100vh;
+    overflow-y:auto;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    padding:24px 16px 60px;
+  }
+  nav h2{font-size:14px;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin:18px 0 8px;}
+  nav h2:first-child{margin-top:0;}
+  nav a{
+    display:block;
+    color:var(--muted);
+    text-decoration:none;
+    font-size:13.5px;
+    padding:5px 8px;
+    border-radius:6px;
+  }
+  nav a:hover{background:var(--panel2);color:var(--text);}
+  main{flex:1;padding:40px 56px;max-width:960px;}
+  header.hero{
+    padding:50px 40px;
+    border-radius:16px;
+    background:linear-gradient(135deg,#1a2740,#0b0f14 70%);
+    border:1px solid var(--border);
+    margin-bottom:40px;
+  }
+  header.hero h1{font-size:38px;margin:0 0 10px;}
+  header.hero p{color:var(--muted);font-size:16px;max-width:640px;}
+  .module-tag{
+    display:inline-block;
+    background:var(--accent);
+    color:#1a1206;
+    font-weight:700;
+    font-size:12px;
+    padding:3px 10px;
+    border-radius:20px;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+  }
+  section{margin-bottom:56px;scroll-margin-top:20px;}
+  h2.section-title{
+    font-size:28px;
+    border-bottom:2px solid var(--border);
+    padding-bottom:10px;
+    margin-bottom:20px;
+    color:var(--accent2);
+  }
+  h3{font-size:20px;color:var(--text);margin-top:34px;border-left:4px solid var(--accent);padding-left:12px;}
+  h4{font-size:16px;color:var(--accent);margin-top:22px;}
+  p{color:#d3dbe3;}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:20px 24px;
+    margin:16px 0;
+  }
+  .callout{
+    background:#1c2a1c;
+    border-left:4px solid #6fbf6f;
+    padding:14px 18px;
+    border-radius:8px;
+    margin:16px 0;
+  }
+  .question{
+    background:#2a1f14;
+    border-left:4px solid var(--accent);
+    padding:14px 18px;
+    border-radius:8px;
+    margin:16px 0;
+    font-style:italic;
+  }
+  .example{
+    background:#12222c;
+    border-left:4px solid var(--accent2);
+    padding:14px 18px;
+    border-radius:8px;
+    margin:16px 0;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:18px 0;
+    font-size:14.5px;
+  }
+  th,td{
+    border:1px solid var(--border);
+    padding:8px 12px;
+    text-align:left;
+  }
+  th{background:var(--panel2);color:var(--accent2);}
+  tr:nth-child(even){background:#0f141b;}
+  code, .mono{
+    font-family:'Consolas','Courier New',monospace;
+    background:var(--code);
+    padding:2px 6px;
+    border-radius:4px;
+    color:#ffd8a8;
+    font-size:13.5px;
+  }
+  .hash-block{
+    font-family:monospace;
+    background:var(--code);
+    padding:14px;
+    border-radius:8px;
+    word-break:break-all;
+    font-size:13px;
+    color:#8fe3ff;
+    margin:12px 0;
+  }
+  ul,ol{color:#d3dbe3;padding-left:22px;}
+  li{margin-bottom:6px;}
+  .diagram-block{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin:18px 0;
+  }
+  .node{
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:14px 18px;
+    text-align:center;
+    min-width:110px;
+  }
+  .arrow{align-self:center;color:var(--accent);font-size:20px;}
+  .two-col{display:flex;gap:24px;flex-wrap:wrap;}
+  .two-col > div{flex:1;min-width:260px;}
+  .badge{
+    display:inline-block;
+    font-size:11px;
+    padding:2px 8px;
+    border-radius:12px;
+    background:var(--panel2);
+    color:var(--muted);
+    margin-left:8px;
+  }
+  hr.divider{border:none;border-top:1px solid var(--border);margin:40px 0;}
+  .top-link{font-size:12px;color:var(--muted);text-decoration:none;}
+  footer{color:var(--muted);font-size:13px;padding:40px 0;text-align:center;}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav>
+  <h2>Overview</h2>
+  <a href="#intro">Why Study Blockchain?</a>
+  <a href="#internet-story">Story of the Internet</a>
+
+  <h2>Module A — Blockchain</h2>
+  <a href="#what-is-blockchain">What is Blockchain?</a>
+  <a href="#hashing">Hashing Algorithm (SHA-256)</a>
+  <a href="#block-structure">Block Structure & Chaining</a>
+  <a href="#immutable-ledger">Immutable Ledger</a>
+  <a href="#p2p">Distributed P2P Networks</a>
+  <a href="#mining">Blockchain Mining</a>
+  <a href="#nonce">The Nonce</a>
+  <a href="#mining-difficulty">Mining Difficulty & Target</a>
+  <a href="#timestamp">Timestamp</a>
+  <a href="#mempool">Mempool</a>
+  <a href="#cpu-gpu-asic">CPU vs GPU vs ASIC</a>
+  <a href="#byzantine">Byzantine Generals Problem</a>
+  <a href="#consensus">Consensus Protocol</a>
+  <a href="#orphan-51">Orphan Blocks & 51% Attack</a>
+  <a href="#applications">Applications of Blockchain</a>
+
+  <h2>Module B — Cryptocurrency</h2>
+  <a href="#bitcoin-history">History of Bitcoin</a>
+  <a href="#bitcoin-basics">What is Bitcoin?</a>
+  <a href="#coin-token">Blockchain vs Coin vs Token</a>
+  <a href="#monetary-policy">Bitcoin's Monetary Policy</a>
+  <a href="#nonce-range">Nonce Range</a>
+  <a href="#mining-pools">Mining Pools</a>
+  <a href="#utxo">Transactions & UTXOs</a>
+  <a href="#tx-fee">Transaction Fees</a>
+  <a href="#wallets">Cryptocurrency Wallets</a>
+  <a href="#keys">Public & Private Keys</a>
+  <a href="#segwit">Segregated Witness</a>
+  <a href="#hd-wallets">HD Wallets</a>
+
+  <h2>Module C — Smart Contract / Ethereum</h2>
+  <a href="#ethereum-intro">What is Ethereum?</a>
+  <a href="#eth-nodes">Ethereum Nodes</a>
+  <a href="#eth-accounts">Ethereum Accounts</a>
+  <a href="#smart-contract">Smart Contracts</a>
+  <a href="#dapps">Decentralized Apps (Dapps)</a>
+  <a href="#evm">Ethereum Virtual Machine</a>
+  <a href="#gas">Gas, Gas Price & Gas Limit</a>
+  <a href="#eth2">Ethereum 2.0 & Proof of Stake</a>
+  <a href="#sharding">Sharding</a>
+  <a href="#daos">DAOs & The DAO Attack</a>
+  <a href="#forks">Hard Fork vs Soft Fork</a>
+  <a href="#ico">Tokens, ICOs & Alt Coins</a>
+
+  <h2>Wrap-up</h2>
+  <a href="#properties">Properties of Blockchain</a>
+  <a href="#recap">Full Recap Table</a>
+</nav>
+
+<main>
+
+<header class="hero" id="intro">
+  <span class="module-tag">Complete Course Notes</span>
+  <h1>Blockchain — The Deep Dive</h1>
+  <p>A full walkthrough of Blockchain, Cryptocurrency, and Smart Contracts — rebuilt from the original 3-module course (Module A: Blockchain, Module B: Cryptocurrency, Module C: Smart Contract) into detailed, readable study notes with worked examples, tables, and diagrams for every topic.</p>
+</header>
+
+<section>
+<h2 class="section-title">Why Study Blockchain?</h2>
+
+<p>The internet solved the problem of <strong>communication</strong> — email, social media, and instant messaging let information move instantly across the globe. But the internet never solved the problem of <strong>trust</strong>.</p>
+
+<div class="two-col">
+  <div class="card">
+    <h4>Internet → Communication</h4>
+    <p>Great at moving information. Anyone can copy, forward, or fake a digital message. There's no built-in way to prove an asset (money, a document, a vote) hasn't been duplicated or tampered with.</p>
+  </div>
+  <div class="card">
+    <h4>Blockchain → Trust</h4>
+    <p>Blockchain is often called a "trust machine." It lets strangers transact and agree on facts (who owns what, what happened, in what order) without needing a bank, notary, or government to vouch for them.</p>
+  </div>
+</div>
+
+<p>Every internet transaction today (buying something online, transferring money, signing a contract) still quietly relies on a trusted middleman: a bank, a payment processor, a government registry. Blockchain is disruptive because it removes that middleman by replacing "trust in an institution" with "trust in math and majority consensus."</p>
+
+<div class="question">Q) What is a disruptive technology?<br>
+<span style="font-style:normal;color:var(--muted);font-size:14px;">A disruptive technology is an innovation that displaces an established way of doing things — often by making something cheaper, more accessible, or fundamentally more efficient, the way the internet disrupted mail and newspapers, or streaming disrupted cable TV. Blockchain is considered disruptive because it can remove the need for centralized trusted intermediaries (banks, land registries, escrow agents) across many industries at once.</span>
+</div>
+
+<h3 id="internet-story">The Story of the Internet — Trust Issues</h3>
+<p>When you send money over the traditional internet, you don't actually trust the network — you trust the <em>bank</em> sitting behind it to correctly record the transaction, prevent double-spending, and keep an accurate ledger. If that institution is corrupt, hacked, or makes an error, there's no independent way to verify the truth. Blockchain's core pitch: replace that single trusted party with a distributed ledger that thousands of independent computers agree on.</p>
+</section>
+
+<hr class="divider">
+
+<section>
+<h2 class="section-title">Module A — Blockchain</h2>
+
+<h3 id="what-is-blockchain">What is Blockchain?</h3>
+<div class="callout">
+Blockchain is a <strong>distributed, immutable ledger</strong> which is completely transparent.
+</div>
+
+<p>Break that definition down piece by piece:</p>
+<table>
+<tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>Ledger</td><td>A record book of entries/transactions — the digital version of the old paper "ledger book" used by banks and merchants.</td></tr>
+<tr><td>Distributed</td><td>Not stored in one place. Thousands of copies exist across a peer-to-peer network; no single server holds the "master" copy.</td></tr>
+<tr><td>Immutable</td><td>Once an entry (a block) is added and buried under enough later blocks, it becomes practically impossible to alter without redoing an enormous amount of work.</td></tr>
+<tr><td>Transparent</td><td>Anyone can inspect the full history of entries — there's no hidden back-office ledger only the institution can see.</td></tr>
+</table>
+
+<p>Think of it as a shared Google Doc for transactions that thousands of strangers all hold an identical copy of, where new entries can only be appended (never edited), and where a majority of copy-holders must agree before an entry is accepted.</p>
+
+<h4>Inventors of Blockchain</h4>
+<p>The core idea — a cryptographically linked chain of timestamped blocks — was first proposed in 1991 by <strong>Stuart Haber</strong> and <strong>W. Scott Stornetta</strong>, who wanted a way to timestamp digital documents so they couldn't be backdated or tampered with. Decades later, <strong>Satoshi Nakamoto</strong> (pseudonymous) combined this idea with peer-to-peer networking and proof-of-work mining in the 2008 Bitcoin whitepaper, creating the first practical, decentralized blockchain.</p>
+
+<hr class="divider">
+
+<h3 id="hashing">Hashing Algorithm — The Fingerprint of Data</h3>
+<p>A <strong>hash function</strong> takes any input — a document, an image, a video, a block of transactions — and produces a fixed-length string of characters that acts like a digital fingerprint of that data.</p>
+
+<div class="example">
+Bitcoin (and much of blockchain) uses <strong>SHA-256</strong> (Secure Hash Algorithm, 256-bit).
+<div class="hash-block">5819E961F19967B4ECB2429085E17909CFFD4DCB6267D0067F6CAEC22150A7B1</div>
+This hash has 64 hexadecimal characters. Each hex character represents 4 bits, so 64 × 4 = <strong>256 bits</strong> total — hence "SHA-256."
+</div>
+
+<h4>The Five Requirements of a Good Hash Algorithm</h4>
+<table>
+<tr><th>Property</th><th>What it means</th></tr>
+<tr><td>One-Way</td><td>Easy to compute the hash from the data, but computationally infeasible to reverse it back into the original data.</td></tr>
+<tr><td>Deterministic</td><td>The same input always produces exactly the same hash output, every time.</td></tr>
+<tr><td>Fast Computation</td><td>Hashes can be calculated very quickly, even for huge inputs.</td></tr>
+<tr><td>Avalanche Effect</td><td>Changing even a single character of input (e.g. "845" vs "ABC") completely and unpredictably changes the resulting hash.</td></tr>
+<tr><td>Withstand Collisions</td><td>It should be virtually impossible to find two different inputs that hash to the exact same output.</td></tr>
+</table>
+
+<p>Because of the avalanche effect, hashes are perfect for tamper-detection: if anyone changes even one letter in a block's data, its hash changes completely, instantly revealing the tampering.</p>
+
+<h4>Hexadecimal Numbers (used in hashes)</h4>
+<p>Hashes are written in hexadecimal (base 16), which uses 16 symbols: 0–9 and then A–F standing in for 10–15.</p>
+<table>
+<tr><th>Decimal</th><th>Hex</th><th>Decimal</th><th>Hex</th></tr>
+<tr><td>0–9</td><td>0–9</td><td>13</td><td>D</td></tr>
+<tr><td>10</td><td>A</td><td>14</td><td>E</td></tr>
+<tr><td>11</td><td>B</td><td>15</td><td>F</td></tr>
+<tr><td>12</td><td>C</td><td>—</td><td>—</td></tr>
+</table>
+<p>Since each hex character can be one of 16 symbols, and a SHA-256 hash has 64 characters, the total number of possible hashes is <span class="mono">16⁶⁴ ≈ 10⁷⁷</span> — an almost incomprehensibly large number. The smallest possible hash is all zeros (<span class="mono">000...0</span>) and the largest is all F's (<span class="mono">fff...f</span>).</p>
+
+<hr class="divider">
+
+<h3 id="block-structure">Block Structure & How Blocks Chain Together</h3>
+<p>Each <strong>block</strong> in the chain stores four key things:</p>
+<ul>
+  <li><strong>Block Number</strong> — its position in the chain.</li>
+  <li><strong>Data</strong> — the transactions (or other information) it contains.</li>
+  <li><strong>Previous Hash</strong> — the hash of the block right before it.</li>
+  <li><strong>Hash</strong> — its own hash, calculated from its own data + the previous hash.</li>
+</ul>
+
+<div class="diagram-block">
+  <div class="node">Block 1<br><span class="mono">Prev: 000000000</span><br><span class="mono">Hash: 0000D8C42</span></div>
+  <div class="arrow">→</div>
+  <div class="node">Block 2<br><span class="mono">Prev: 0000D8C42</span><br><span class="mono">Hash: 00003A459</span></div>
+  <div class="arrow">→</div>
+  <div class="node">Block 3<br><span class="mono">Prev: 00003A459</span><br><span class="mono">Hash: 00003D45F</span></div>
+</div>
+
+<p>Block 1 is special — it's called the <strong>Genesis Block</strong>, and its "previous hash" field is just zeros because there's no block before it.</p>
+
+<div class="callout">
+<strong>Why this makes the chain tamper-evident:</strong> each block's hash is calculated using its own data <em>and</em> the previous block's hash. If someone secretly edits Block 1's data, Block 1's hash changes — but Block 2 still stores the <em>old</em> hash of Block 1 as its "Previous Hash." That mismatch instantly breaks the chain and every honest node can see the tampering. To hide the change, an attacker would have to re-mine every single block after the one they edited — which, as covered below, is computationally almost impossible on a large network.
+</div>
+
+<hr class="divider">
+
+<h3 id="immutable-ledger">Immutable Ledger — Why It Matters</h3>
+<p>Imagine buying a house the traditional way: a <strong>centralized institution</strong> (a land registry) keeps the one true record of who owns what, in a centralized database, and physically maintains the register.</p>
+
+<div class="two-col">
+<div class="card">
+<h4>Centralized Ledger</h4>
+<ul>
+<li>One institution maintains the register.</li>
+<li>You must trust that institution completely.</li>
+<li>A single point of failure — if that institution's database is hacked, corrupted, or the institution itself is dishonest, the record can be altered with no way to detect it.</li>
+</ul>
+</div>
+<div class="card">
+<h4>Distributed (Blockchain) Ledger</h4>
+<ul>
+<li>Thousands of independent copies exist across a peer-to-peer network (nodes A–F, etc).</li>
+<li>An attacker would need to hack and alter the majority of all copies simultaneously — practically impossible.</li>
+<li>Any single corrupted or hacked copy is instantly outvoted by the honest majority and rejected.</li>
+</ul>
+</div>
+</div>
+
+<p>This is the "concept of immutability": data isn't unchangeable because of a lock, but because changing it would require overpowering the entire honest network at once.</p>
+
+<hr class="divider">
+
+<h3 id="p2p">Distributed Peer-to-Peer (P2P) Networks</h3>
+
+<h4>Centralized Network</h4>
+<p>In a traditional client-server model, every client (user) talks only to a central <strong>server</strong>. Clients send a <em>request</em>, the server processes it and sends a <em>response</em>. This is how most of the web works (e.g. your browser talking to a company's servers).</p>
+<div class="diagram-block">
+  <div class="node">Client A</div>
+  <div class="arrow">↘</div>
+  <div class="node" style="border-color:var(--accent);">Server</div>
+  <div class="arrow">↙</div>
+  <div class="node">Client B</div>
+</div>
+<p><strong>Weakness:</strong> the server is a single point of failure — take it down, hack it, or corrupt it, and the whole system is compromised.</p>
+
+<h4>Distributed P2P Network</h4>
+<p>In a P2P network there is no central server. Every participant is a <strong>peer</strong> that connects directly to other peers, and every peer holds its own copy of the full ledger.</p>
+<div class="diagram-block">
+  <div class="node">Peer A</div><div class="node">Peer B</div><div class="node">Peer C</div>
+  <div class="node">Peer E</div><div class="node">Peer F</div>
+</div>
+<p>All peers are interconnected (mesh topology). If one peer goes offline or gets hacked, the rest of the network is unaffected and continues to function normally — there's no single point of failure.</p>
+
+<div class="question">Q) Why do we need a Distributed P2P network in Blockchain?<br>
+<span style="font-style:normal;color:var(--muted);font-size:14px;">Because it removes the single point of failure and the single point of trust. If a hacker corrupts one peer's copy of the ledger, that peer's version simply won't match the majority, and the rest of the honest network will reject it — preserving the concept of immutability described above.</span>
+</div>
+
+<hr class="divider">
+
+<h3 id="mining">Blockchain Mining — The Big Picture</h3>
+<p>Mining is the process by which new blocks are added to the chain. At a high level, it happens in four steps:</p>
+<ol>
+  <li><strong>Transaction</strong> — a new transaction is broadcast to the network.</li>
+  <li><strong>Solve Mathematical Problem</strong> — miners race to solve a computationally difficult puzzle (see Nonce, below).</li>
+  <li><strong>Miner Solved Problem First</strong> — whichever miner finds the solution first announces it to the network.</li>
+  <li><strong>Miners Verify the Validity</strong> — every other miner independently checks the solution is correct.</li>
+  <li><strong>Block is Added</strong> — once verified, the block is appended to everyone's copy of the chain, and the winning miner is rewarded.</li>
+</ol>
+<p>Mining accomplishes three things at once: it adds new transactions to the ledger, it secures the network (making tampering computationally expensive), and it issues new coins into circulation as a reward.</p>
+
+<h4>Challenges Faced by Miners</h4>
+<ul>
+  <li>High electricity bills</li>
+  <li>Time-consuming, competitive process</li>
+  <li>Requires strong mathematical problem-solving hardware</li>
+  <li>Needs fast, powerful computers</li>
+  <li>The "start all over again" attitude — if you lose the race, all that computation was for nothing and you must start fresh on the next block</li>
+</ul>
+
+<hr class="divider">
+
+<h3 id="nonce">The Nonce — How Mining Actually Works</h3>
+<p>A <strong>nonce</strong> ("number used once") is a number that miners change over and over, trying to find a value that — combined with the block's data and previous hash — produces a hash meeting a specific requirement (the "target").</p>
+
+<div class="example">
+<strong>Worked example:</strong> Suppose Block No. 6 contains:<br>
+<span class="mono">Kshitij → Rakesh: 500 coins</span><br>
+<span class="mono">Raj → Bella: 200 coins</span><br>
+<span class="mono">Prev Hash: 0000AB23</span>
+<p>The miner tries different nonce values and recomputes the hash each time:</p>
+<table>
+<tr><th>Nonce tried</th><th>Resulting Hash</th><th>Valid?</th></tr>
+<tr><td>23</td><td>00001ba1</td><td>❌ (needs more leading zeros)</td></tr>
+<tr><td>50</td><td>0000fb12</td><td>❌</td></tr>
+<tr><td>1001</td><td>0000ef23</td><td>❌</td></tr>
+<tr><td>3</td><td>0000acc12</td><td>✅ meets target</td></tr>
+</table>
+<p>Because of the avalanche effect, there's no shortcut — miners must simply keep guessing nonce values (brute force) until one happens to work.</p>
+</div>
+
+<h4>Nonce vs Target</h4>
+<table>
+<tr><th>Term</th><th>Definition</th></tr>
+<tr><td>Nonce</td><td>The number miners are solving for — they change it repeatedly to try to produce a valid hash.</td></tr>
+<tr><td>Target</td><td>A threshold number that the resulting block hash must be <em>below</em> (i.e., have enough leading zeros) for the block to be accepted onto the chain.</td></tr>
+</table>
+<p>The target readjusts roughly <strong>every 2016 blocks</strong> (about every two weeks) so that, on average, a new block is mined once every 10 minutes — regardless of how much total computing power ("hash power") has joined or left the network.</p>
+
+<hr class="divider">
+
+<h3 id="mining-difficulty">Understanding Mining Difficulty</h3>
+<p>Imagine trying to guess a 5-digit hexadecimal number. If any digit is allowed, there's a huge "area" of possible answers you could land on. But if the puzzle demands the number <em>start</em> with more and more leading zeros — <span class="mono">0XXXX</span> → <span class="mono">00XXX</span> → <span class="mono">000XX</span> — the space of acceptable answers shrinks dramatically, making it harder to stumble on a valid one by chance.</p>
+
+<div class="card">
+<h4>The real numbers</h4>
+<p>Bitcoin's current target might require roughly <strong>19 leading zeros</strong> in a 64-digit hex hash.</p>
+<ul>
+<li>Total possible 64-digit hex numbers: <span class="mono">16⁶⁴ ≈ 10⁷⁷</span></li>
+<li>Total valid hashes (with 19 leading zeros): <span class="mono">16^(64−19) ≈ 10⁵⁴</span></li>
+<li>Probability a randomly generated hash is valid: <span class="mono">10⁵⁴ / 10⁷⁷ ≈ 10⁻²³</span></li>
+</ul>
+<p>That's an astronomically small probability — which is exactly why mining requires so much brute-force computing power.</p>
+</div>
+
+<div class="question">Q) Who adjusts the difficulty?<br>
+<span style="font-style:normal;color:var(--muted);font-size:14px;">"To compensate for increasing hardware speed and varying interest in running nodes over time, the proof-of-work difficulty is determined by a moving average targeting an average number of blocks per hour. If they're generated too fast, the difficulty increases." — Satoshi Nakamoto. No single person or authority sets it; it's a protocol rule that automatically self-adjusts based on the network's recent block-production speed.</span>
+</div>
+
+<hr class="divider">
+
+<h3 id="timestamp">Timestamp — Solving the "Ran Out of Nonces" Problem</h3>
+<p>A nonce in Bitcoin is a <strong>32-bit number</strong>, meaning its range is <span class="mono">0 to 2³²−1 ≈ 4 billion</span> possible values.</p>
+<p>But the total number of possible valid hashes is around 10⁷⁷, while the miner only has ~4 billion nonce values to try. That means <strong>10⁷⁷ ≫ 4×10⁹</strong> — there literally aren't enough nonce values to guarantee finding a valid hash, especially as mining hardware got faster.</p>
+
+<div class="example">
+A modest miner might compute ~10⁸ hashes/sec.<br>
+Time to exhaust all 4×10⁹ nonces = (4×10⁹) / 10⁸ = <strong>40 seconds</strong>.<br><br>
+Modern hardware computes around 234 million trillion hashes/sec (≈10¹⁸–10²⁰).<br>
+Time to exhaust all nonces = (4×10⁹) / (10¹⁸) ≈ <strong>4 × 10⁻⁹ seconds</strong> — a tiny fraction of a second!
+</div>
+
+<div class="question">Q) So what do miners do once all nonce values are exhausted and the target still hasn't been hit?<br>
+<span style="font-style:normal;color:var(--muted);font-size:14px;">They change the <strong>Timestamp</strong> field in the block. Since the hash depends on the timestamp too, updating it (even by one second) resets the entire pool of nonce combinations to try again — effectively giving miners a fresh 4-billion-nonce search space to work through.</span>
+</div>
+
+<hr class="divider">
+
+<h3 id="mempool">Mempool — The Waiting Room for Transactions</h3>
+<p>The <strong>mempool</strong> ("memory pool") is a holding area where broadcast transactions sit before they're picked up and included in a block. Every node keeps its own mempool of pending, unconfirmed transactions.</p>
+
+<div class="example">
+Example pending transactions in the mempool, each with an attached fee:
+<div class="hash-block">
+FF3ABC  Fees: 0.0008 &nbsp;|&nbsp; D23ABC  Fees: 0.001 &nbsp;|&nbsp; A21ADC  Fees: 0.002<br>
+B24ABE  Fees: 0.006 &nbsp;|&nbsp; 43AFBC  Fees: 0.007 &nbsp;|&nbsp; E23AB2  Fees: 0.004 &nbsp;|&nbsp; F23A6C  Fees: 0.005
+</div>
+</div>
+
+<p>Since block space is limited, miners generally prioritize transactions offering the <strong>highest fees per byte</strong> — that's why, in the example, transactions get sorted and picked into the block roughly from highest fee to lowest as space allows. This is also why during busy network periods, fees rise: users compete to get their transaction picked up sooner by outbidding others.</p>
+
+<hr class="divider">
+
+<h3 id="cpu-gpu-asic">CPUs vs GPUs vs ASICs</h3>
+<p>Mining hardware has evolved dramatically in raw hashing speed:</p>
+<table>
+<tr><th>Hardware</th><th>Approx. Hashing Power</th><th>Notes</th></tr>
+<tr><td>CPU</td><td>&lt; 10 MH/s</td><td>General-purpose processor; earliest Bitcoin miners used ordinary computer CPUs.</td></tr>
+<tr><td>GPU</td><td>&lt; 1 GH/s</td><td>Graphics cards handle many parallel calculations, making them far faster at hashing than CPUs.</td></tr>
+<tr><td>ASIC</td><td>&gt; 110 TH/s</td><td>Application-Specific Integrated Circuit — a chip custom-built to do nothing but SHA-256 hashing, vastly outperforming CPUs and GPUs. This is what powers essentially all serious Bitcoin mining today.</td></tr>
+</table>
+
+<hr class="divider">
+
+<h3 id="byzantine">The Byzantine Generals Problem</h3>
+<p>This classic computer-science thought experiment underlies why consensus in a distributed network is hard.</p>
+<div class="card">
+<p><strong>The scenario:</strong> Several generals surround an enemy city with their armies. They can only communicate by messenger. They must all agree on the same plan — attack or retreat — because a partial attack (some generals attack, others retreat) means certain defeat. The problem: some of the generals (or their messengers) might be <strong>traitors</strong> who deliberately send conflicting messages to sabotage consensus.</p>
+</div>
+<p>The question this poses for any distributed system: <em>how do honest participants reach reliable agreement when some participants might be malicious or faulty, and there's no central commander to trust?</em></p>
+
+<div class="question">Q) How does this Byzantine Fault Tolerance work in Blockchain?<br>
+<span style="font-style:normal;color:var(--muted);font-size:14px;">Blockchain solves it through its Consensus Protocol (below) — nodes don't need to trust each other individually; they trust whichever version of the chain has the most accumulated proof-of-work behind it, and any dishonest minority is automatically outweighed by the honest majority.</span>
+</div>
+
+<hr class="divider">
+
+<h3 id="consensus">Consensus Protocol</h3>
+<p>The Consensus Protocol is the rulebook that lets a Distributed P2P network agree on a single, shared version of the truth — tying together everything covered so far:</p>
+<div class="diagram-block">
+  <div class="node">✔ Hashing Algorithm</div>
+  <div class="node">✔ Immutable Ledger</div>
+  <div class="node">✔ Mining</div>
+  <div class="node">✔ Distributed P2P Network</div>
+</div>
+<p>Its two main jobs: <strong>prevent attacks</strong> and resolve the <strong>competing chain problem</strong> (what happens when two miners solve a valid block at nearly the same time, creating two different "next" chains).</p>
+
+<h4>Types of Consensus Protocols</h4>
+<ul>
+  <li><strong>Proof of Work (PoW)</strong> — miners compete by burning computational power (used by Bitcoin).</li>
+  <li><strong>Proof of Stake (PoS)</strong> — validators "stake" coins as collateral instead of burning electricity (used by modern Ethereum).</li>
+  <li>Others (Delegated PoS, Proof of Authority, etc.)</li>
+</ul>
+
+<h4>The Longest Chain Rule</h4>
+<p>When two competing valid blocks appear at the same time, the network doesn't vote — it simply follows whichever branch grows <strong>longest</strong> (i.e., accumulates the most proof-of-work) fastest. The shorter branch's blocks become <strong>orphan blocks</strong>.</p>
+
+<div class="callout">
+<strong>Note:</strong> The Consensus Protocol is actually more efficient than pure Byzantine Fault Tolerance — BFT classically needs about a <strong>66% honest majority</strong> to guarantee safety, while Bitcoin's Nakamoto Consensus only needs just over a <strong>51% majority</strong> of honest hashing power.
+</div>
+
+<h3 id="orphan-51">Orphan Blocks & the 51% Attack</h3>
+<p><strong>Orphan Blocks:</strong> when two miners solve a block at nearly the same moment, the network temporarily forks into two competing chains. Once one chain becomes longer, all transactions in the losing ("orphaned") block are dropped back into the mempool, and that miner receives no reward for their work. This is exactly why it's recommended to <strong>wait for 6 confirmations</strong> (6 blocks built on top of yours) before considering a payment fully final — it makes the odds of your transaction ending up in an orphaned branch vanishingly small.</p>
+
+<p><strong>The 51% Attack:</strong> Contrary to popular imagination, this isn't about 51% of all nodes conspiring together (practically impossible to coordinate) — it's about a single attacker or group gaining control of more than 51% of the network's total <strong>hashing power</strong>. With majority hash power, an attacker can consistently out-mine the honest network, build a longer alternative private chain, and then broadcast it — causing the network to switch over and orphan the legitimate transactions (enabling "double spending").</p>
+
+<hr class="divider">
+
+<h3 id="applications">Real-World Applications of Blockchain</h3>
+<div class="two-col">
+<div class="card"><h4>Product Tracking</h4><p>Example: tracking a batch of coffee. A customer scans a barcode/QR code on the product, and the blockchain reveals every step of its supply-chain journey — farm, processor, shipper, retailer — each step recorded as an immutable entry, making counterfeiting and fraud far harder.</p></div>
+<div class="card"><h4>Smart Contracts</h4><p>Self-executing agreements. Example: an IoT sensor in a shipping container tracks temperature. If it detects a temperature spike above a threshold (e.g. 30°C) for perishable goods, the smart contract automatically cancels the delivery and withholds payment — no human, lawyer, or bank needed to enforce the terms.</p></div>
+<div class="card"><h4>International Wire Transfer</h4><p>Traditional cross-border transfers are slow because money physically routes through a chain of intermediaries: sender bank → correspondent bank → "slow bank" → receiver bank, each taking a cut and adding delay. Blockchain-based transfers can settle directly, peer-to-peer, without these hops.</p></div>
+<div class="card"><h4>Healthcare System</h4><p>A patient's medical history, generated in City A, can be securely and immutably shared with a hospital in City B without relying on a single centralized (and potentially siloed or hackable) medical records database.</p></div>
+</div>
+</section>
+
+<hr class="divider">
+
+<section>
+<h2 class="section-title">Module B — Cryptocurrency</h2>
+
+<h3 id="bitcoin-history">History of Bitcoin</h3>
+<p>Bitcoin was born out of the 2008 global financial crisis. In the US alone, roughly <strong>9 million people lost their jobs</strong> and about <strong>1.8 million small businesses closed</strong>. Public trust collapsed — not just in individual banks, but in the entire system of centralized financial institutions and government-backed monetary policy ("foolishness of banks," "US Government" distrust).</p>
+<p>Out of that crisis of trust, an anonymous person (or group) using the pseudonym <strong>Satoshi Nakamoto</strong> published the Bitcoin whitepaper in 2008, proposing a decentralized digital currency that needed no central bank or single administrator at all.</p>
+
+<h3 id="bitcoin-basics">What is Bitcoin?</h3>
+<div class="callout">
+Bitcoin is a <strong>decentralized digital currency</strong>, without a central bank or single administrator, that can be sent from user to user on the peer-to-peer Bitcoin network without the need for intermediaries. It uses Blockchain technology under the hood.
+</div>
+<p>Where the internet solved "communication," Bitcoin (built on blockchain) tries to solve "trust" specifically for money — letting two strangers exchange value directly, with the network itself (rather than a bank) verifying the transaction is legitimate.</p>
+
+<h4>Bitcoin Ecosystem</h4>
+<p>The ecosystem is made up of several participant roles:</p>
+<ul>
+  <li><strong>Node</strong> — any computer running the Bitcoin software, holding a copy of the ledger and relaying transactions.</li>
+  <li><strong>Miner</strong> — a node that also competes to solve blocks and earn rewards.</li>
+  <li><strong>Mining Pool</strong> — a group of miners combining hash power and splitting rewards proportionally.</li>
+  <li><strong>Large Mines</strong> — industrial-scale mining operations with massive dedicated hardware.</li>
+</ul>
+
+<h3 id="coin-token">Blockchain vs Coin vs Token</h3>
+<table>
+<tr><th>Layer</th><th>Examples</th><th>Description</th></tr>
+<tr><td>Technology (Blockchain)</td><td>The underlying distributed ledger tech itself</td><td>The foundational infrastructure — the "internet" layer of crypto.</td></tr>
+<tr><td>Protocol / Coin</td><td>Bitcoin, Ethereum, Waves</td><td>A cryptocurrency with its own independent blockchain.</td></tr>
+<tr><td>Token</td><td>e.g. TRX, SNT, REP, AE</td><td>Built <em>on top of</em> an existing blockchain (like Ethereum) rather than having its own — usually via smart contracts, representing an asset or utility.</td></tr>
+</table>
+
+<h3 id="monetary-policy">Bitcoin's Monetary Policy</h3>
+<h4>The Halving</h4>
+<p>Bitcoin's issuance is designed to shrink over time. Roughly every 210,000 blocks (~4 years), the block reward given to miners is cut in half — an event called "the halving."</p>
+<table>
+<tr><th>Event</th><th>Date</th><th>Block #</th><th>Reward</th></tr>
+<tr><td>Launch of Bitcoin</td><td>03 Jan 2009</td><td>0</td><td>50 BTC</td></tr>
+<tr><td>1st Halving</td><td>28 Nov 2012</td><td>210,000</td><td>25 BTC</td></tr>
+<tr><td>2nd Halving</td><td>09 Jul 2016</td><td>420,000</td><td>12.5 BTC</td></tr>
+<tr><td>3rd Halving</td><td>11 May 2020</td><td>630,000</td><td>6.25 BTC</td></tr>
+<tr><td>4th Halving</td><td>Expected 2024</td><td>740,000</td><td>3.125 BTC</td></tr>
+<tr><td>5th Halving</td><td>Expected 2028</td><td>850,000</td><td>1.5625 BTC</td></tr>
+<tr><td>Max Supply Reached</td><td>Expected 2140</td><td>6,930,000</td><td>0 BTC</td></tr>
+</table>
+<div class="callout">Bitcoin's total supply is hard-capped at <strong>21 million coins</strong> — a deliberately designed scarcity, unlike traditional fiat currencies where central banks can print more at will.</div>
+
+<h4>Block Frequency</h4>
+<p>On average, a new block is created roughly every <strong>10 minutes</strong>, thanks to the self-adjusting mining difficulty described earlier.</p>
+
+<h3 id="nonce-range">Nonce Range (recap in Bitcoin context)</h3>
+<p>Bitcoin's nonce field is a 32-bit number, giving a range of <span class="mono">0 to 2³²−1 ≈ 4 billion</span> values — which, as shown earlier, gets exhausted in a fraction of a second on modern hardware, forcing miners to also cycle the timestamp (or reorganize transaction order in the block) to keep searching for a valid hash.</p>
+
+<h3 id="mining-pools">Mining Pools</h3>
+<p>As mining difficulty rose, it became increasingly rare for an individual miner to solve a block alone. <strong>Mining pools</strong> let many miners combine their hash power, dramatically increasing their collective chance of solving a block — with the reward then split among members proportional to the computing power each contributed.</p>
+<h4>Benefits of Mining Pools</h4>
+<ul>
+  <li>You don't need to buy costly specialized equipment yourself.</li>
+  <li>No need to worry about setting up and maintaining your own mining rig.</li>
+  <li>Rewards are distributed fairly according to contributed mining power.</li>
+  <li>Reduces wasted electricity/effort compared to many miners solo-mining and mostly losing.</li>
+</ul>
+
+<hr class="divider">
+
+<h3 id="utxo">Transactions and UTXOs (Unspent Transaction Outputs)</h3>
+<p>Bitcoin doesn't track "account balances" the way a bank does. Instead, it tracks individual chunks of bitcoin called <strong>UTXOs</strong> — Unspent Transaction Outputs — like a wallet full of individual bills and coins rather than one running total.</p>
+
+<div class="example">
+<strong>Worked example:</strong> Suppose your wallet's UTXOs are:
+<ul>
+<li>Arjun → Me: 0.4 BTC</li>
+<li>Raj → Me: 0.3 BTC</li>
+<li>Alice → Me: 0.7 BTC</li>
+<li>Bob → Me: 0.1 BTC</li>
+</ul>
+You want to buy coffee for <strong>0.5 BTC</strong>. Bitcoin can't "split" a UTXO partially — you must spend a whole UTXO (or combination) as <em>input</em>, and any leftover comes back to you as a new UTXO ("change").
+<p><strong>Transaction:</strong></p>
+<ul>
+<li>Input: 0.7 BTC (from Alice's UTXO)</li>
+<li>Output 1: 0.5 BTC → the coffee shop</li>
+<li>Output 2: 0.2 BTC → back to yourself (change), becoming a brand-new UTXO</li>
+</ul>
+After this transaction, the 0.7 BTC UTXO from Alice is now "spent" and no longer exists — it's been replaced by two new UTXOs: one owned by the coffee shop (0.5 BTC) and one owned by you (0.2 BTC).
+</div>
+
+<h3 id="tx-fee">Transaction Fees</h3>
+<p>Transaction fees emerge naturally from the UTXO model: the fee is simply the leftover amount between what goes in and what's explicitly assigned to outputs.</p>
+<div class="example">
+Input: 0.7 BTC (from Alice)<br>
+Output 1: 0.5 BTC → coffee shop<br>
+Output 2: 0.1 BTC → back to yourself<br>
+<strong>Fee: 0.7 − 0.5 − 0.1 = 0.1 BTC</strong> (this difference is claimed by whichever miner includes your transaction in their block — this fee is itself minted as a new UTXO owned by the miner).
+</div>
+<p>This is exactly why, as covered in the Mempool section, transactions offering higher fees get prioritized by miners — miners are financially incentivized to pick the highest-fee transactions first.</p>
+
+<h3 id="wallets">Cryptocurrency Wallets</h3>
+<p>A "wallet" doesn't actually store coins inside it (there's no physical coin sitting in a file). Instead, a wallet scans the entire blockchain history and calculates your current spendable balance by adding up all the UTXOs that belong to your address(es) and haven't yet been spent.</p>
+<div class="example">
+Walking through the blocks:<br>
+Block 1: Raj → Me 0.3 BTC, Alice → Me 0.7 BTC, Bob → Me 0.1 BTC<br>
+Block 2: Arjun → Me 0.4 BTC, Me → coffee shop 0.5 BTC, Me → Me 0.2 BTC (change)<br>
+Block 3: Me → Noodle shop 1.4 BTC (spending Arjun's 0.4 + Raj's 0.3 + Alice's 0.7 = 1.4 BTC exactly)<br>
+<br>
+After scanning every block, the wallet totals up your remaining unspent UTXOs — e.g., Bob's 0.1 BTC — to show your current balance (1.1 BTC in the deck's running example after fees).
+</div>
+
+<h3 id="keys">Public Key & Private Key Cryptography</h3>
+<p>Ownership and spending authority in Bitcoin are controlled entirely through <strong>asymmetric cryptography</strong> — a pair of mathematically linked keys.</p>
+<table>
+<tr><th>Key</th><th>Role</th></tr>
+<tr><td>Private Key</td><td>Kept absolutely secret. Used to <strong>sign</strong> a transaction (create a Signature) proving you authorize spending a UTXO. Whoever has the private key has full control of the funds.</td></tr>
+<tr><td>Public Key</td><td>Can be shared openly. Used, along with a <strong>Verification Function</strong>, to check that a signature was genuinely produced by the matching private key — returning a Yes/No answer without ever revealing the private key itself.</td></tr>
+</table>
+<div class="diagram-block">
+  <div class="node">Message + Private Key</div><div class="arrow">→</div>
+  <div class="node">Signature</div><div class="arrow">→</div>
+  <div class="node">Verification Function (using Public Key)</div><div class="arrow">→</div>
+  <div class="node">Yes / No</div>
+</div>
+
+<h4>Public Key vs Bitcoin Address</h4>
+<p>The Bitcoin Address you actually share with others to receive funds isn't the raw public key itself — it's a further-hashed, shortened, checksum-protected representation of the public key, designed to be shorter and safer against typos than the full public key.</p>
+
+<h3 id="segwit">Segregated Witness (SegWit)</h3>
+<p>Historically, a block's 1MB size limit had to fit both transaction data <em>and</em> the signature data ("witness" data — things like <span class="mono">ScriptSig</span>, public keys, and signatures) together. Since signature data can take up 60–65% of a transaction's size, this wasted a lot of scarce block space.</p>
+<p><strong>Segregated Witness</strong> "segregates" (separates) the signature/witness data out of the main transaction body and stores it in an extended, separate structure — effectively letting more transactions fit into the same block size, increasing throughput without literally raising the 1MB base limit.</p>
+
+<h3 id="hd-wallets">Hierarchically Deterministic (HD) Wallets</h3>
+<p>Rather than managing a separate, independently generated private key for every address you use (a headache to back up), HD wallets derive an entire tree of key pairs from one single <strong>Master Private Key</strong>.</p>
+<div class="diagram-block">
+  <div class="node">Master Private Key</div>
+  <div class="arrow">→ +1 →</div>
+  <div class="node">Private Key 1 → Public Key 1 → Address 1</div>
+</div>
+<div class="diagram-block">
+  <div class="node">Master Private Key</div>
+  <div class="arrow">→ +2 →</div>
+  <div class="node">Private Key 2 → Public Key 2 → Address 2</div>
+</div>
+<p>Because every subsequent key is deterministically derived from the master key using a defined path (+1, +2, +3...), you only ever need to back up a single seed phrase (representing the master key) to recover every address and key you've ever generated in that wallet.</p>
+</section>
+
+<hr class="divider">
+
+<section>
+<h2 class="section-title">Module C — Smart Contracts & Ethereum</h2>
+
+<h3 id="ethereum-intro">What is Ethereum?</h3>
+<p>Bitcoin proved that decentralized money was possible, but its scripting language is deliberately simple and <strong>not Turing complete</strong> (limited logic; can't run arbitrary loops or complex programs). <strong>Vitalik Buterin</strong> proposed Ethereum in 2013–2015 as a blockchain designed not just to move currency, but to run arbitrary, general-purpose programs — <strong>smart contracts</strong>.</p>
+<p>Ethereum sits in the same "Protocol/Coin" layer as Bitcoin (see the Blockchain vs Coin vs Token table above), but distinguishes itself by supporting a built-in, Turing-complete programming environment.</p>
+
+<h3 id="eth-nodes">Ethereum Nodes</h3>
+<p>Not all nodes on the Ethereum network store the same amount of data. There are three types:</p>
+<table>
+<tr><th>Node Type</th><th>What it stores/does</th></tr>
+<tr><td>Full Node</td><td>Stores the (periodically pruned) full blockchain data, participates in validating every block and state, and serves data to the network on request. Older/very historical states can be reconstructed by requesting them from an archive node.</td></tr>
+<tr><td>Light Node</td><td>Stores only block headers, and relies on full nodes for everything else. Designed for low-capacity devices that can't store gigabytes of data. Cannot participate in consensus (can't mine/validate) but can still fully interact with the blockchain.</td></tr>
+<tr><td>Archive Node</td><td>Stores everything a full node does, plus a complete historical archive of every past state — requiring terabytes of disk space.</td></tr>
+</table>
+
+<h3 id="eth-accounts">Ethereum Accounts</h3>
+<p>An Ethereum account is any entity holding an Ether (ETH) balance that can send or receive transactions. There are two kinds:</p>
+<table>
+<tr><th></th><th>Externally Owned Account (EOA)</th><th>Contract Account (CA)</th></tr>
+<tr><td>Requires a private key?</td><td>Yes</td><td>No private/public key needed</td></tr>
+<tr><td>Controlled by</td><td>A human, via their wallet's private key</td><td>Contract code (its own programmed logic)</td></tr>
+<tr><td>Has a unique address?</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Holds an ETH balance?</td><td>Yes</td><td>Yes</td></tr>
+</table>
+<p>In short: an EOA is "you" — a human controlling a wallet with a private key and sending/receiving transactions. A CA is a piece of deployed code (a smart contract) that itself can hold a balance and execute logic when triggered — but is never controlled directly by a private key of its own.</p>
+
+<h3 id="smart-contract">Smart Contracts</h3>
+<div class="callout">
+A smart contract is simply <strong>code deployed on the blockchain</strong> that automatically executes a set of predefined rules when triggered — no lawyer, escrow agent, or manual enforcement required.
+</div>
+
+<h4>Bitcoin Script vs Ethereum Solidity</h4>
+<table>
+<tr><th>Bitcoin Script</th><th>Ethereum Solidity</th></tr>
+<tr><td>Not Turing complete (deliberately limited: no loops, limited logic)</td><td>Turing complete (can express essentially any computation, including loops and complex state logic)</td></tr>
+</table>
+<p>This is the fundamental technical distinction that lets Ethereum support complex decentralized applications (Dapps, DeFi, DAOs) that Bitcoin's simpler scripting language was never designed to run.</p>
+
+<h4>How Smart Contracts Live on the Blockchain</h4>
+<p>Every node stores: (1) the current state of every smart contract, and (2) the full history of both ordinary transactions and smart contract calls. This means a smart contract's logic and data are just as tamper-evident and distributed as regular transaction data.</p>
+
+<h4>Recap Example — the Delivery Contract</h4>
+<div class="example">
+An IoT sensor is attached to a shipment. The smart contract logic reads:<br><br>
+<strong>If</strong> IoT detects temperature &gt; 30°C → <strong>Cancel delivery</strong>, do not pay Party A.<br>
+<strong>Else</strong> (temperature stays below 30°C, the assumed optimum) → <strong>Complete delivery</strong> and transfer money to Party A.<br><br>
+The entire enforcement — checking the condition and moving the money — happens automatically and trustlessly, without either party needing to trust the other's honesty.
+</div>
+
+<h3 id="dapps">Decentralized Apps (Dapps)</h3>
+<p>A traditional (centralized) app has a client talking to a company-owned server, which can be taken down, censored, or made to charge you. A <strong>Dapp</strong> replaces that central server with a decentralized network of peers plus a smart contract handling the backend logic — the app's "front end" talks directly to the smart contract instead of a company's server.</p>
+<div class="diagram-block">
+  <div class="node">Front End (UI)</div>
+  <div class="arrow">→</div>
+  <div class="node">Smart Contract</div>
+  <div class="arrow">→</div>
+  <div class="node">Decentralized Network</div>
+</div>
+<table>
+<tr><th>Centralized Apps</th><th>Decentralized Apps</th></tr>
+<tr><td>Not trustworthy (single owner controls everything)</td><td>Trustworthy (rules enforced transparently by code)</td></tr>
+<tr><td>Subject to censorship</td><td>No censorship possible</td></tr>
+<tr><td>You pay the company for the service</td><td>Often the reverse — the protocol/network pays incentives to participants</td></tr>
+<tr><td>Can go down (server outage, company shuts down)</td><td>Can (in theory) never go down, since it runs across a distributed network</td></tr>
+</table>
+
+<h3 id="evm">Ethereum Virtual Machine (EVM)</h3>
+<p>The <strong>EVM</strong> is the runtime environment that actually executes smart contract code. Every full node on the Ethereum network runs its own copy of the EVM, and they all execute the exact same code with the exact same inputs — guaranteeing every node arrives at the identical resulting state. Think of it as a single, giant, globally distributed, and completely deterministic computer.</p>
+
+<h3 id="gas">Gas, Gas Price & Gas Limit</h3>
+<p>Because the EVM will happily execute any code — including infinite loops — Ethereum needs a mechanism to stop malicious or buggy code from running forever and grinding the whole network to a halt. That mechanism is <strong>Gas</strong>.</p>
+
+<h4>Gas — the "cost" of computation</h4>
+<div class="example">
+Every EVM operation has a fixed gas cost. For the expression <span class="mono">10 * 3 − 6</span>:<br>
+Multiplication = 5 gas, Subtraction = 3 gas, Comparison/Equal = 3 gas<br>
+<strong>Total gas = 5 + 3 + 3 = 11 gas</strong>
+</div>
+<p>Key rule: <strong>any transaction that modifies the blockchain's state costs gas</strong>, and the user who initiates the transaction pays for that gas.</p>
+
+<h4>Gas Price — the "price per unit" of gas</h4>
+<p>An analogy: if gas is like liters of petrol needed for a trip, Gas Price is the price per liter. It's the amount (in <strong>gwei</strong>, where 1 gwei = 10⁻⁹ ETH) that the sender is willing to pay per unit of gas to get their transaction mined. Higher gas price = faster mining priority, since miners/validators are incentivized to pick the most profitable transactions first (same principle as the Bitcoin mempool fee auction).</p>
+
+<h4>Gas Limit — the maximum you're willing to spend</h4>
+<p>The Gas Limit caps how much total gas a transaction is allowed to consume, set by the sender.</p>
+<div class="example">
+<strong>A sends B 2 ETH.</strong> A simple ETH transfer costs exactly 21,000 gas units.
+<table>
+<tr><th>Case</th><th>Gas Limit Set</th><th>Result</th></tr>
+<tr><td>Case 1: exact limit</td><td>21,000 units @ 100 gwei/unit</td><td>Total fee = 21,000 × 100 = 2,100,000 gwei = 0.0021 ETH. Transaction succeeds.</td></tr>
+<tr><td>Case 2: limit too low</td><td>20,000 units (below the required 21,000)</td><td>❌ Transaction fails — but the gas that was already consumed up to the point of failure is still spent/lost.</td></tr>
+<tr><td>Case 3: limit higher than needed</td><td>22,000 units</td><td>Transaction succeeds using only 21,000; the unused 1,000 units are refunded back to the sender.</td></tr>
+</table>
+</div>
+
+<hr class="divider">
+
+<h3 id="eth2">Ethereum 2.0 & Proof of Stake</h3>
+<p>Ethereum originally used Proof of Work (like Bitcoin), but transitioned ("The Merge") to <strong>Proof of Stake (PoS)</strong> to cut energy usage and improve scalability.</p>
+<p>In PoS, instead of miners competing by burning electricity, <strong>validators</strong> lock up ("stake") a quantity of ETH as collateral. The protocol then randomly selects a validator to propose the next block, weighted by how much they've staked — the more ETH staked, the higher the odds of being selected, and the validator earns the block reward plus transaction fees.</p>
+
+<table>
+<tr><th></th><th>Proof of Work (PoW)</th><th>Proof of Stake (PoS)</th></tr>
+<tr><td>Participants called</td><td>Miners</td><td>Validators</td></tr>
+<tr><td>Hardware needed</td><td>High-performance specialized hardware</td><td>A mobile phone or laptop is enough</td></tr>
+<tr><td>Electricity use</td><td>Very high</td><td>Minimal</td></tr>
+<tr><td>Chance of validating a block</td><td>Proportional to hashing power</td><td>Proportional to ETH staked</td></tr>
+<tr><td>Attack threshold</td><td>Requires 51% of network hash power</td><td>Requires 51% of total staked ETH</td></tr>
+<tr><td>Selection mechanism</td><td>Competition (race to solve first)</td><td>Random weighted selection</td></tr>
+</table>
+
+<h3 id="sharding">Sharding</h3>
+<p>As more validators join, verifying the entire blockchain state on every single node becomes a bottleneck. <strong>Sharding</strong> solves this by splitting the network into multiple smaller partitions ("shards"), each handling only a subset of the total transaction/state load in parallel — similar in spirit to horizontally partitioning a huge database.</p>
+<div class="diagram-block">
+  <div class="node">Beacon Chain</div>
+  <div class="arrow">+</div>
+  <div class="node">Ethereum Mainnet</div>
+  <div class="arrow">+</div>
+  <div class="node">Shard Chains</div>
+</div>
+<h4>Major Benefits of Sharding</h4>
+<ul>
+  <li>Transactions per second increase significantly.</li>
+  <li>Powerful, expensive computers are no longer required to participate.</li>
+  <li>More validators can realistically join the network.</li>
+  <li>Overall energy consumption is reduced.</li>
+</ul>
+
+<hr class="divider">
+
+<h3 id="daos">DAOs — Decentralized Autonomous Organizations</h3>
+<p>A DAO is an organization whose rules and treasury are governed entirely by transparent smart-contract code and member voting, rather than a traditional management hierarchy (Director → Manager → Employees).</p>
+<table>
+<tr><th>DAO</th><th>Traditional Organization</th></tr>
+<tr><td>Fully democratized</td><td>Usually hierarchical</td></tr>
+<tr><td>Voting required</td><td>Voting may or may not be required</td></tr>
+<tr><td>No trusted intermediary needed to count votes</td><td>Voting outcomes must be handled manually</td></tr>
+<tr><td>Services are handled automatically by code</td><td>Requires human handling or centrally controlled automation</td></tr>
+<tr><td>All activity is transparent and fully public</td><td>Activity is typically private, limited disclosure</td></tr>
+</table>
+
+<h4>The DAO Attack (2016)</h4>
+<p>"The DAO" was an actual, famous decentralized investment fund built on Ethereum. Investors sent Ether in exchange for DAO tokens, which gave them voting rights over which investment proposals the fund would fund.</p>
+<table>
+<tr><th>Date</th><th>Event</th></tr>
+<tr><td>30 Apr 2016</td><td>The DAO goes live, eventually raising over $100 million.</td></tr>
+<tr><td>15 May 2016</td><td>A vulnerability is identified.</td></tr>
+<tr><td>17 Jun 2016</td><td>The DAO is attacked — an attacker exploits a re-entrancy bug to repeatedly drain Ether before the contract could update its internal balance.</td></tr>
+<tr><td>16 Jun 2016</td><td>First proposal circulated to counter the attack.</td></tr>
+<tr><td>20 Jul 2016</td><td>A hard fork is completed to reverse the effects of the attack.</td></tr>
+</table>
+<div class="callout">The fallout from this attack is precisely why <strong>Ethereum Classic</strong> exists today — a portion of the community refused to accept the hard fork (believing "code is law" and the chain should never be altered even to reverse a hack), and continued on the original, unforked chain.</div>
+
+<h3 id="forks">Hard Fork vs Soft Fork</h3>
+<h4>Hard Fork</h4>
+<p>A hard fork is a protocol upgrade that is <strong>not backward-compatible</strong>. Once a node upgrades, it will reject blocks/transactions produced by older, non-upgraded software — creating a permanent split into two separate chains if some participants don't upgrade.</p>
+<div class="example">
+<strong>Example — increasing max block size to 8MB:</strong> Nodes that have upgraded start accepting/producing blocks up to 8MB. Nodes that haven't upgraded still enforce the old, smaller limit and will reject these larger blocks outright as invalid — the two groups can no longer agree on a single valid chain, causing a permanent split.
+</div>
+
+<h4>Soft Fork</h4>
+<p>A soft fork is a <strong>backward-compatible</strong> upgrade — old, non-upgraded nodes can still validate blocks/transactions from upgraded nodes (the new rules are a subset/tightening of the old rules), even though the old nodes don't fully "understand" the new features being used.</p>
+<div class="example">
+<strong>Example — decreasing max block size to 0.5MB:</strong> Since a smaller block automatically satisfies the old (larger) size rule too, non-upgraded nodes still consider these blocks perfectly valid — no chain split occurs, as long as a sufficient majority has upgraded.
+</div>
+<table>
+<tr><th></th><th>Hard Fork</th><th>Soft Fork</th></tr>
+<tr><td>Backward compatible?</td><td>No</td><td>Yes</td></tr>
+<tr><td>Old nodes can validate new blocks?</td><td>No — rejected outright</td><td>Yes</td></tr>
+<tr><td>Risk of permanent chain split</td><td>High, if not everyone upgrades</td><td>Low</td></tr>
+<tr><td>Real examples</td><td>Bitcoin Cash, Bitcoin Gold, Ethereum/Ethereum Classic split</td><td>SegWit activation on Bitcoin</td></tr>
+</table>
+
+<hr class="divider">
+
+<h3 id="ico">Tokens, ICOs & Alt Coins</h3>
+<h4>Tokens</h4>
+<p>Tokens are cryptocurrencies that represent an asset or a specific use-case, but reside on <em>someone else's</em> blockchain (usually Ethereum) rather than having their own independent chain (see the Blockchain vs Coin vs Token table earlier).</p>
+
+<h4>Initial Coin Offering (ICO)</h4>
+<p>An ICO is the crypto-native equivalent of an IPO (Initial Public Offering) in traditional finance.</p>
+<div class="two-col">
+<div class="card">
+<h4>Traditional Stock Offering</h4>
+<p>Investors give a company <strong>initial capital (cash)</strong>. In return they receive <strong>shares</strong>. If the company later profits from its services/products, shareholders may receive dividends or capital gains.</p>
+</div>
+<div class="card">
+<h4>ICO</h4>
+<p>Investors give a project <strong>cash</strong> (often in the form of ETH or BTC). In return they receive <strong>tokens</strong> instead of company shares. If the project succeeds and its services/products generate value, token holders may benefit through token price appreciation or utility within the platform.</p>
+</div>
+</div>
+
+<h4>Alt Coins</h4>
+<div class="callout">Altcoins are simply defined as <strong>all cryptocurrencies other than Bitcoin</strong> — Ethereum, Litecoin, Ripple, and thousands of others all technically qualify as altcoins.</div>
+<p>The need for so many alt coins generally comes down to differences across three axes:</p>
+<ul>
+  <li><strong>Technology</strong> — different consensus mechanisms, speed, or scalability trade-offs.</li>
+  <li><strong>Protocol</strong> — different rules, supply schedules, and governance models.</li>
+  <li><strong>Application & Use</strong> — different target use-cases (payments, smart contracts, privacy, supply chain, etc.).</li>
+</ul>
+</section>
+
+<hr class="divider">
+
+<section>
+<h2 class="section-title" id="properties">Properties of Blockchain — The Big Three</h2>
+<div class="two-col">
+<div class="card"><h4>Decentralization</h4><p>No single institution or server controls the ledger; control and data are spread across a peer-to-peer network of independent participants.</p></div>
+<div class="card"><h4>Immutability</h4><p>Once entries are confirmed and buried under enough subsequent blocks, altering them becomes computationally impractical — protected by hashing, chaining, and the honest majority's collective computing/staking power.</p></div>
+<div class="card"><h4>Transparency</h4><p>The full transaction history is visible to any participant, removing the need to blindly trust a hidden, centralized record-keeper.</p></div>
+</div>
+
+<p>These three properties are exactly why blockchain shows up as a candidate solution across so many different domains:</p>
+<ul>
+  <li>Cryptocurrency & decentralized finance</li>
+  <li>Bank alternatives / remittances</li>
+  <li>Online identity verification</li>
+  <li>Healthcare record sharing</li>
+  <li>Copyright & royalty tracking</li>
+  <li>Real estate title & transaction processing</li>
+  <li>Smart contracts for automated agreements</li>
+  <li>Product/supply-chain tracking</li>
+</ul>
+</section>
+
+<hr class="divider">
+
+<section id="recap">
+<h2 class="section-title">Full Course Recap Table</h2>
+<table>
+<tr><th>Module</th><th>Core Building Blocks</th></tr>
+<tr><td><strong>A — Blockchain</strong></td><td>What is Blockchain · Hashing (SHA-256) · Block structure & chaining · Immutable Ledger · Distributed P2P Networks · Mining & Nonce · Mining Difficulty & Target · Timestamp · Mempool · CPU/GPU/ASIC · Byzantine Generals Problem · Consensus Protocol · Orphan Blocks & 51% Attack</td></tr>
+<tr><td><strong>B — Cryptocurrency</strong></td><td>History & purpose of Bitcoin · Blockchain vs Coin vs Token · Monetary Policy (Halving) · Nonce Range · Mining Pools · UTXOs & Transactions · Transaction Fees · Wallets · Public/Private Keys · SegWit · HD Wallets</td></tr>
+<tr><td><strong>C — Smart Contract / Ethereum</strong></td><td>What is Ethereum · Node types · EOA vs Contract Accounts · Smart Contracts (Turing complete) · Dapps · EVM · Gas, Gas Price, Gas Limit · Proof of Stake & Eth 2.0 · Sharding · DAOs & The DAO Attack · Hard vs Soft Forks · Tokens, ICOs, Alt Coins</td></tr>
+</table>
+</section>
+
+<footer>
+  Deep-dive notes compiled from the full course deck (Modules A, B & C). <a class="top-link" href="#intro">↑ Back to top</a>
+</footer>
+
+</main>
+</div>
+</body>
+</html>
